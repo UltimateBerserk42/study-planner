@@ -228,6 +228,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="overlay" id="modal-task"><div class="modal"><button class="modal-close" onclick="closeModal('modal-task')">×</button><h3>Nueva tarea</h3><div style="margin-bottom:14px"><label style="font-size:11px;color:var(--text-m);font-weight:700;text-transform:uppercase;display:block;margin-bottom:6px">Descripción</label><input id="nt-desc" style="width:100%;padding:11px 13px;border:1px solid var(--border-m);border-radius:12px;font-size:15px;font-family:inherit"></div><div style="margin-bottom:14px"><label style="font-size:11px;color:var(--text-m);font-weight:700;text-transform:uppercase;display:block;margin-bottom:6px">Materia</label><select id="nt-subj" style="width:100%;padding:11px 13px;border:1px solid var(--border-m);border-radius:12px;font-size:15px;font-family:inherit"></select></div><div style="margin-bottom:14px"><label style="font-size:11px;color:var(--text-m);font-weight:700;text-transform:uppercase;display:block;margin-bottom:6px">Fecha</label><input type="date" id="nt-date" style="width:100%;padding:11px 13px;border:1px solid var(--border-m);border-radius:12px;font-size:15px;font-family:inherit"></div><div class="modal-footer"><button class="btn" onclick="closeModal('modal-task')">Cancelar</button><button class="btn btn-primary" onclick="saveManualTask()">Guardar</button></div></div></div>
 <div id="toast" class="toast"><span id="toast-text"></span></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyBGtBh_AJLB_WGLeDu_DYl9zv-riU3-w-w",
@@ -255,16 +258,14 @@ function loginWithGoogle() {
 auth.onAuthStateChanged(function(user) {
   const loginScreen = document.getElementById('login-screen');
   if (user) {
-    // Si inició sesión, ocultamos la pantalla de login
-    loginScreen.style.display = 'none';
+    currentUser = user; // Guardamos quién es el usuario
+    loginScreen.style.display = 'none'; // Ocultamos la pantalla
+    loadDB(); // ¡AQUÍ DESCARGAMOS EL PROGRESO DE LA NUBE!
   } else {
-    // Si no ha iniciado sesión, mostramos la pantalla
-    loginScreen.style.display = 'flex';
+    currentUser = null;
+    loginScreen.style.display = 'flex'; // Mostramos la pantalla
   }
 });
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 // ── MATERIAS (mapeadas al pensum del primer semestre) ────────────────────────
 const SUBJECTS_DEF={
   cal:{name:'Cálculo I',emoji:'📐',color:'cal',badge:'Prioridad',goal:'Dominar el álgebra y precálculo y entrar a límites y derivadas — la materia más exigente del semestre',topics:[
@@ -362,8 +363,37 @@ const COLORHEX={cal:'#7C5CBF',eco:'#9B4A8A',his:'#6B4FA0',red:'#B07AC9',rev:'#B0
 let db={subjects:[],tasks:[],scores:{},unlocked:[]};
 let currentDetailId=null,calDate=new Date(2026,5,1),selectedCalDate=null,currentTab='hoy',quiz=null;
 
-function loadDB(){try{const s=localStorage.getItem('planv_pensum_v1');if(s)db=JSON.parse(s);}catch(e){}if(!db.scores)db.scores={};if(!db.unlocked)db.unlocked=[];if(!db.subjects||!db.subjects.length)seed();else renderAll();}
-function saveDB(){try{localStorage.setItem('planv_pensum_v1',JSON.stringify(db));}catch(e){}}
+let currentUser = null;
+
+function loadDB() {
+  if (!currentUser) return;
+  // Pedimos los datos a la nube
+  firestore.collection("usuarios").doc(currentUser.uid).get()
+  .then(function(doc) {
+    if (doc.exists) {
+      // Si el usuario ya tiene progreso, lo descargamos
+      db = JSON.parse(doc.data().progreso);
+      if(!db.scores) db.scores={};
+      if(!db.unlocked) db.unlocked=[];
+      renderAll();
+    } else {
+      // Si es un usuario nuevo, generamos las materias
+      seed(); 
+    }
+  }).catch(function(error) {
+    console.error("Error al descargar progreso:", error);
+  });
+}
+
+function saveDB() {
+  if (!currentUser) return;
+  // Subimos los datos a la nube
+  firestore.collection("usuarios").doc(currentUser.uid).set({
+    progreso: JSON.stringify(db)
+  }).catch(function(error) {
+    console.error("Error al guardar progreso:", error);
+  });
+}
 
 function seed(){
   db={subjects:[],tasks:[],scores:{},unlocked:[]};
@@ -474,7 +504,6 @@ function openModal(id){document.getElementById(id).classList.add('open');documen
 function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o){o.classList.remove('open');document.body.style.overflow='';}}));
 function showToast(text){const t=document.getElementById('toast');document.getElementById('toast-text').textContent=text;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),2600);}
-loadDB();
 </script>
 </body>
 </html>
