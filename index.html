@@ -208,6 +208,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="toast" class="toast"><span id="toast-text"></span></div>
 
 <script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBGtBh_AJLB_WGLeDu_DYl9zv-riU3-w-w",
+  authDomain: "study-planner-322c0.firebaseapp.com",
+  projectId: "study-planner-322c0",
+  storageBucket: "study-planner-322c0.firebasestorage.app",
+  messagingSenderId: "517256690289",
+  appId: "1:517256690289:web:6e3b7a4140d149f1b4b9d0",
+  measurementId: "G-0CHLZ8MLZ1"
+};
+  firebase.initializeApp(firebaseConfig);
+const firestore = firebase.firestore();
+const auth = firebase.auth();
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 // ── MATERIAS (mapeadas al pensum del primer semestre) ────────────────────────
 const SUBJECTS_DEF={
   cal:{name:'Cálculo I',emoji:'📐',color:'cal',badge:'Prioridad',goal:'Dominar el álgebra y precálculo y entrar a límites y derivadas — la materia más exigente del semestre',topics:[
