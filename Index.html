@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#3B2A5A">
+<title>Mi planificador</title>
+<style>
+:root{
+  --deep:#3B2A5A;--deep-2:#4A356E;--purple:#7C5CBF;--purple-light:#A98FE0;--purple-soft:#EDE6FA;
+  --lilac:#C9B6F0;--plum:#5E3A7E;--mauve:#B07AC9;--mauve-soft:#F3E4F7;--berry:#9B4A8A;--berry-soft:#F7E0F0;
+  --violet:#6B4FA0;--violet-soft:#E8E0F5;
+  --cream:#FBF9FF;--text:#2A2140;--text-m:#6B5E85;--text-s:#9B90B0;
+  --border:rgba(59,42,90,0.10);--border-m:rgba(59,42,90,0.18);--white:#FFF;
+  --radius:16px;--radius-s:12px;--radius-xs:8px;
+  --shadow:0 1px 3px rgba(59,42,90,0.05),0 2px 8px rgba(59,42,90,0.05);
+  --shadow-md:0 4px 16px rgba(59,42,90,0.12);
+  --nav-h:64px;--safe-bot:env(safe-area-inset-bottom,0px);--safe-top:env(safe-area-inset-top,0px)
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{overscroll-behavior-y:contain}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--cream);
+  background-image:radial-gradient(circle at 12% 8%, rgba(176,122,201,0.12) 0%, transparent 35%),radial-gradient(circle at 88% 92%, rgba(124,92,191,0.10) 0%, transparent 40%),radial-gradient(circle at 90% 15%, rgba(201,182,240,0.14) 0%, transparent 35%);
+  background-attachment:fixed;color:var(--text);min-height:100vh;font-size:15px;-webkit-font-smoothing:antialiased;padding-bottom:calc(var(--nav-h) + var(--safe-bot))}
+.app{max-width:480px;margin:0 auto;padding:calc(.75rem + var(--safe-top)) .85rem 1.5rem}
+.header{position:relative;margin-bottom:1rem;padding:1.25rem;background:linear-gradient(135deg,var(--deep) 0%,var(--plum) 100%);border-radius:var(--radius);overflow:hidden;color:#fff;box-shadow:var(--shadow-md)}
+.header::before{content:'';position:absolute;top:-20px;right:-20px;width:120px;height:120px;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><g fill='%23B07AC9' opacity='0.30'><circle cx='30' cy='30' r='8'/><circle cx='70' cy='40' r='10'/><circle cx='50' cy='65' r='9'/><circle cx='80' cy='75' r='6'/></g><g fill='%23C9B6F0' opacity='0.35'><circle cx='15' cy='70' r='12'/><circle cx='85' cy='25' r='10'/></g></svg>") no-repeat;background-size:contain;opacity:.8;pointer-events:none}
+.header h1{font-size:20px;font-weight:600;letter-spacing:-0.3px;position:relative;z-index:1}
+.header p{font-size:12px;color:var(--lilac);margin-top:3px;text-transform:capitalize;position:relative;z-index:1}
+.header .countdown{font-size:11px;color:var(--mauve);margin-top:2px;position:relative;z-index:1;font-weight:600}
+.streak-badge{display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);padding:6px 13px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,0.25);position:relative;z-index:1}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:8px 4px calc(8px + var(--safe-bot));z-index:50;display:flex;justify-content:space-around;box-shadow:0 -2px 12px rgba(59,42,90,0.06)}
+.nav-btn{flex:1;padding:6px 4px;border:none;background:transparent;cursor:pointer;color:var(--text-s);font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;transition:color .15s;min-height:48px;border-radius:12px}
+.nav-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nav-btn.active{color:var(--purple)}
+.nav-btn.active svg{stroke:var(--purple);transform:scale(1.05)}
+.nav-btn:active{background:var(--purple-soft)}
+.section{display:none}
+.section.active{display:block;animation:fade .3s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:.85rem 1rem;margin-bottom:.75rem;box-shadow:var(--shadow)}
+.session-head{font-size:12.5px;font-weight:600;color:var(--plum);margin:0 0 .5rem .15rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.session-time{font-size:11px;font-weight:700;color:var(--mauve);background:var(--mauve-soft);padding:2px 9px;border-radius:20px}
+.btn{padding:12px 16px;border-radius:var(--radius-s);border:1px solid var(--border-m);background:var(--white);color:var(--text);font-size:14px;font-family:inherit;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:600;min-height:44px}
+.btn:active{transform:scale(0.97);background:var(--purple-soft)}
+.btn-primary{background:var(--purple);color:#fff;border-color:var(--purple)}
+.btn-primary:active{background:var(--plum)}
+.btn-sm{padding:8px 14px;font-size:13px;min-height:36px}
+.btn-block{width:100%}
+.subj-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:1rem;margin-bottom:.75rem;cursor:pointer;transition:all .2s;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.subj-card:active{transform:scale(0.98)}
+.subj-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--clr,var(--purple))}
+.subj-header{display:flex;align-items:flex-start;gap:10px;margin-left:6px}
+.subj-emoji{font-size:24px;line-height:1}
+.subj-name{font-weight:600;font-size:15px;flex:1;line-height:1.3}
+.subj-goal{font-size:12px;color:var(--text-m);margin-top:4px;line-height:1.45}
+.subj-badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding:2px 8px;border-radius:20px;margin-left:6px}
+.progress-wrap{margin-top:12px;margin-left:6px}
+.progress-track{height:6px;background:var(--purple-soft);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text-m);margin-top:5px;font-weight:600}
+.task-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.task-item:last-child{border-bottom:none}
+.task-check{width:24px;height:24px;border-radius:7px;border:2px solid var(--border-m);cursor:pointer;flex-shrink:0;margin-top:1px;appearance:none;-webkit-appearance:none;background:var(--white);transition:all .2s}
+.task-check:checked{background:var(--purple);border-color:var(--purple);background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 6l3 3 5-5' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:center}
+.task-text{font-size:14px;line-height:1.45;flex:1;color:var(--text)}
+.task-text.done{text-decoration:line-through;color:var(--text-s)}
+.task-meta{font-size:11px;color:var(--text-s);margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tag{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.tag-cal{background:var(--purple-soft);color:var(--plum)}
+.tag-eco{background:var(--berry-soft);color:var(--berry)}
+.tag-his{background:var(--violet-soft);color:var(--violet)}
+.tag-red{background:var(--mauve-soft);color:var(--mauve)}
+.tag-rev{background:#EFEAF8;color:var(--deep-2)}
+.alert{padding:11px 14px;border-radius:var(--radius-s);font-size:13px;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px;border:1px solid}
+.alert-warn{background:var(--mauve-soft);color:var(--berry);border-color:var(--lilac)}
+.alert svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0;margin-top:2px}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:.85rem .35rem;text-align:center;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent,var(--purple))}
+.stat-num{font-size:24px;font-weight:700;letter-spacing:-1px;line-height:1}
+.stat-lbl{font-size:9.5px;color:var(--text-m);margin-top:5px;text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+.calendar-wrap{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:.85rem;margin-bottom:1rem;box-shadow:var(--shadow)}
+.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;padding:0 .25rem}
+.cal-month{font-weight:700;font-size:15px;color:var(--plum)}
+.cal-nav{display:flex;gap:5px}
+.cal-nav-btn{width:34px;height:34px;border:none;border-radius:10px;background:var(--purple-soft);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--plum);font-weight:700;font-size:16px}
+.cal-nav-btn:active{background:var(--lilac);color:#fff;transform:scale(0.94)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day-name{font-size:10px;color:var(--text-s);text-align:center;padding:5px 0;font-weight:700;text-transform:uppercase}
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:9px;cursor:pointer;position:relative;font-size:13px;font-weight:600;color:var(--text);transition:all .15s;background:#F6F1FE;border:1.5px solid transparent;min-height:38px}
+.cal-day:active{transform:scale(0.92)}
+.cal-day.other{color:var(--text-s);opacity:0.35;background:transparent}
+.cal-day.sunday{background:transparent;color:var(--text-s);opacity:.5}
+.cal-day.today{background:var(--deep);color:#fff;font-weight:700}
+.cal-day.has-tasks{border-color:var(--purple);background:var(--purple-soft);color:var(--plum)}
+.cal-day.all-done{background:var(--purple);color:#fff;border-color:var(--purple)}
+.cal-day.overdue{background:var(--mauve-soft);border-color:var(--mauve);color:var(--berry)}
+.cal-dots{display:flex;gap:2px;margin-top:2px;justify-content:center;flex-wrap:wrap;max-width:90%}
+.cal-dot{width:4px;height:4px;border-radius:50%}
+.cal-day.selected{outline:2px solid var(--mauve);outline-offset:2px}
+.day-detail{margin-top:.85rem;padding:.85rem;background:var(--purple-soft);border-radius:var(--radius-s);border:1px solid var(--border)}
+.day-detail-title{font-size:13px;font-weight:700;color:var(--plum);margin-bottom:.6rem;display:flex;align-items:center;gap:6px}
+.achievements-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+.achievement{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:.85rem .5rem;text-align:center;position:relative;transition:all .25s;box-shadow:var(--shadow);overflow:hidden;min-height:110px;display:flex;flex-direction:column;justify-content:center}
+.achievement.unlocked{background:linear-gradient(135deg,var(--purple-soft) 0%,var(--mauve-soft) 100%);border-color:var(--lilac)}
+.achievement.locked{opacity:.5;filter:grayscale(.6)}
+.ach-icon{font-size:24px;margin-bottom:5px;line-height:1}
+.ach-name{font-size:11px;font-weight:700;color:var(--plum);line-height:1.25}
+.ach-desc{font-size:10px;color:var(--text-m);margin-top:3px;line-height:1.35}
+.checkpoint{display:flex;align-items:flex-start;gap:12px;padding:.6rem 0;position:relative}
+.checkpoint:not(:last-child)::before{content:'';position:absolute;left:13px;top:30px;bottom:-6px;width:2px;background:var(--purple-soft);border-radius:2px}
+.checkpoint.done:not(:last-child)::before{background:var(--purple)}
+.cp-circle{width:28px;height:28px;border-radius:50%;background:var(--white);border:2px solid var(--purple-soft);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text-s);z-index:1}
+.checkpoint.done .cp-circle{background:var(--purple);border-color:var(--purple);color:#fff}
+.checkpoint.current .cp-circle{background:var(--mauve);border-color:var(--mauve);color:#fff;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(176,122,201,0.6)}50%{box-shadow:0 0 0 8px rgba(176,122,201,0)}}
+.cp-content{flex:1;padding-top:4px}
+.cp-name{font-size:13.5px;font-weight:600;color:var(--text);line-height:1.3}
+.cp-stats{font-size:11px;color:var(--text-s);margin-top:3px}
+.empty{text-align:center;padding:2rem .75rem;color:var(--text-s);font-size:13.5px}
+.empty-emoji{font-size:32px;margin-bottom:8px;opacity:.6}
+.overlay{position:fixed;inset:0;background:rgba(59,42,90,0.45);backdrop-filter:blur(4px);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex;animation:overlay-in .2s ease}
+@keyframes overlay-in{from{opacity:0}to{opacity:1}}
+.modal{background:var(--white);border-radius:24px 24px 0 0;padding:1.25rem 1.25rem calc(1.5rem + var(--safe-bot));width:100%;max-width:480px;max-height:92vh;overflow-y:auto;box-shadow:0 -10px 40px rgba(59,42,90,0.25);position:relative;animation:slide-up .3s cubic-bezier(.4,0,.2,1);-webkit-overflow-scrolling:touch}
+@keyframes slide-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal::before{content:'';display:block;width:40px;height:4px;background:var(--border-m);border-radius:2px;margin:0 auto .85rem}
+.modal h3{font-size:17px;font-weight:600;margin-bottom:.4rem;color:var(--plum)}
+.modal h4{font-size:12px;font-weight:700;color:var(--text-m);margin:1rem 0 .5rem;text-transform:uppercase;letter-spacing:.4px}
+.modal-footer{display:flex;gap:8px;margin-top:1.25rem;flex-direction:column-reverse}
+.modal-footer .btn{flex:1;width:100%}
+.modal-close{position:absolute;top:.85rem;right:1rem;width:32px;height:32px;border:none;background:var(--purple-soft);cursor:pointer;color:var(--text-m);font-size:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600}
+.section-title{font-size:11px;font-weight:700;color:var(--plum);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.6rem;display:flex;align-items:center;gap:6px}
+.divider-flower{display:flex;align-items:center;gap:8px;margin:1.25rem 0 1rem;color:var(--mauve)}
+.divider-flower::before,.divider-flower::after{content:'';flex:1;height:1px;background:linear-gradient(to right,transparent,var(--lilac),transparent)}
+.topic-block{background:#F6F1FE;border-radius:var(--radius-s);padding:.85rem 1rem;margin-bottom:8px;border:1px solid var(--border)}
+.topic-title{font-weight:600;font-size:13.5px;display:flex;justify-content:space-between;margin-bottom:6px;color:var(--plum);gap:8px}
+.topic-time{font-size:11px;font-weight:700;color:var(--mauve);margin-bottom:8px}
+.sub-item{padding:6px 0;display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:var(--text-m);line-height:1.5}
+.q-text{background:#F6F1FE;border-radius:12px;padding:14px;font-size:14px;font-weight:600;margin-bottom:14px;line-height:1.6;color:var(--text)}
+.opt{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border-m);background:var(--white);cursor:pointer;font-size:13.5px;margin-bottom:8px;transition:all .12s}
+.opt:active{transform:scale(0.98)}
+.opt.selected{border-color:var(--purple);background:var(--purple-soft);color:var(--plum)}
+.opt.correct{border-color:var(--purple);background:var(--purple-soft);color:var(--plum)}
+.opt.wrong{border-color:var(--berry);background:var(--berry-soft);color:var(--berry)}
+.opt-letter{width:24px;height:24px;border-radius:50%;background:#EEE7F9;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;color:var(--text-m)}
+.opt.correct .opt-letter{background:var(--purple);color:#fff}
+.hint-box{background:var(--mauve-soft);border:1px solid var(--lilac);border-radius:12px;padding:11px 14px;font-size:13px;color:var(--berry);margin-bottom:12px;line-height:1.5}
+.quiz-result{text-align:center;padding:20px 0 8px}
+.quiz-score{font-size:46px;font-weight:700;letter-spacing:-1px;line-height:1}
+.fab{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bot) + 16px);right:16px;width:54px;height:54px;border-radius:50%;background:var(--mauve);color:#fff;border:none;box-shadow:0 4px 16px rgba(176,122,201,0.45);font-size:26px;cursor:pointer;z-index:40;display:flex;align-items:center;justify-content:center;font-weight:300}
+.fab:active{transform:scale(0.92)}
+.toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bot) + 80px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--deep);color:#fff;padding:12px 18px;border-radius:24px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(59,42,90,0.3);z-index:300;display:flex;align-items:center;gap:8px;opacity:0;transition:all .35s ease;border:2px solid var(--mauve);max-width:90%;text-align:center;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>Mi planificador 🪻</h1>
+    <p id="date-label"></p>
+    <p class="countdown" id="countdown"></p>
+    <div class="streak-badge"><span>🔥</span><span id="streak-text">Empieza tu racha hoy</span></div>
+  </div>
+  <div id="tab-hoy" class="section active">
+    <div id="alerts-box"></div>
+    <p class="section-title"><span>🌟</span>Tareas de hoy</p>
+    <div id="tasks-today"></div>
+    <p class="section-title" style="margin-top:1rem"><span>🔮</span>Próximas</p>
+    <div id="tasks-upcoming"></div>
+  </div>
+  <div id="tab-calendario" class="section">
+    <div class="calendar-wrap">
+      <div class="cal-header"><div class="cal-month" id="cal-month-label"></div><div class="cal-nav"><button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button><button class="cal-nav-btn" onclick="changeMonth(0)">·</button><button class="cal-nav-btn" onclick="changeMonth(1)">›</button></div></div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div id="day-detail-wrap"></div>
+    </div>
+    <div class="divider-flower"><span>🪻</span></div>
+    <p class="section-title"><span>🌱</span>Dónde vas en cada materia</p>
+    <div id="checkpoints-list"></div>
+  </div>
+  <div id="tab-materias" class="section">
+    <p class="section-title"><span>📚</span>Mis materias</p>
+    <div class="card-flat" style="background:var(--purple-soft);border-radius:16px;padding:.85rem 1rem;margin-bottom:.85rem;border:1px solid var(--border);font-size:12.5px;color:var(--text-m);line-height:1.5">🎓 Plan rumbo al primer semestre (inicia 21 de julio). Contexto Universitario y Cultura Formativa no necesitan preparación previa: son materias de inducción.</div>
+    <div id="subjects-list"></div>
+  </div>
+  <div id="tab-evaluador" class="section"><div id="evaluador-body"></div></div>
+  <div id="tab-logros" class="section">
+    <div class="stats-row" id="stats-grid"></div>
+    <p class="section-title"><span>🏆</span>Insignias</p>
+    <div class="achievements-grid" id="achievements-grid"></div>
+    <p class="section-title"><span>📈</span>Progreso por materia</p>
+    <div id="progress-list"></div>
+  </div>
+</div>
+<button class="fab" id="fab" onclick="handleFab()">+</button>
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="showTab('hoy')"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span>Hoy</span></button>
+  <button class="nav-btn" onclick="showTab('calendario')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Calendario</span></button>
+  <button class="nav-btn" onclick="showTab('materias')"><svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg><span>Materias</span></button>
+  <button class="nav-btn" onclick="showTab('evaluador')"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span>Evaluador</span></button>
+  <button class="nav-btn" onclick="showTab('logros')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg><span>Logros</span></button>
+</nav>
+<div class="overlay" id="modal-detail"><div class="modal"><button class="modal-close" onclick="closeModal('modal-detail')">×</button><h3 id="detail-title"></h3><p id="detail-goal" style="font-size:12.5px;color:var(--text-m);margin-bottom:1rem;line-height:1.5"></p><p class="section-title"><span>🌱</span>Ruta de aprendizaje</p><div id="detail-checkpoints"></div><h4>Temas y tareas</h4><div id="detail-topics"></div><div class="modal-footer"><button class="btn btn-primary" onclick="closeModal('modal-detail')">Cerrar</button></div></div></div>
+<div class="overlay" id="modal-task"><div class="modal"><button class="modal-close" onclick="closeModal('modal-task')">×</button><h3>Nueva tarea</h3><div style="margin-bottom:14px"><label style="font-size:11px;color:var(--text-m);font-weight:700;text-transform:uppercase;display:block;margin-bottom:6px">Descripción</label><input id="nt-desc" style="width:100%;padding:11px 13px;border:1px solid var(--border-m);border-radius:12px;font-size:15px;font-family:inherit"></div><div style="margin-bottom:14px"><label style="font-size:11px;color:var(--text-m);font-weight:700;text-transform:uppercase;display:block;margin-bottom:6px">Materia</label><select id="nt-subj" style="width:100%;padding:11px 13px;border:1px solid var(--border-m);border-radius:12px;font-size:15px;font-family:inherit"></select></div><div style="margin-bottom:14px"><label style="font-size:11px;color:var(--text-m);font-weight:700;text-transform:uppercase;display:block;margin-bottom:6px">Fecha</label><input type="date" id="nt-date" style="width:100%;padding:11px 13px;border:1px solid var(--border-m);border-radius:12px;font-size:15px;font-family:inherit"></div><div class="modal-footer"><button class="btn" onclick="closeModal('modal-task')">Cancelar</button><button class="btn btn-primary" onclick="saveManualTask()">Guardar</button></div></div></div>
+<div id="toast" class="toast"><span id="toast-text"></span></div>
+
+<script>
+// ── MATERIAS (mapeadas al pensum del primer semestre) ────────────────────────
+const SUBJECTS_DEF={
+  cal:{name:'Cálculo I',emoji:'📐',color:'cal',badge:'Prioridad',goal:'Dominar el álgebra y precálculo y entrar a límites y derivadas — la materia más exigente del semestre',topics:[
+    {name:'Factorización',time:'60 min',tasks:[{t:'Factor común monomio y por agrupación',type:'lectura'},{t:'Trinomios y diferencia de cuadrados',type:'ejercicios'},{t:'Suma y diferencia de cubos',type:'ejercicios'},{t:'10 ejercicios mixtos',type:'ejercicios'}]},
+    {name:'Fracciones algebraicas',time:'60 min',tasks:[{t:'Simplificación de fracciones',type:'lectura'},{t:'Multiplicación y división',type:'ejercicios'},{t:'Suma y resta con MCD',type:'ejercicios'},{t:'Fracciones complejas (8 ejercicios)',type:'ejercicios'}]},
+    {name:'Ecuaciones e inecuaciones',time:'75 min',tasks:[{t:'Ecuaciones lineales y sistemas 2×2',type:'lectura'},{t:'Ecuaciones cuadráticas y fórmula general',type:'ejercicios'},{t:'Inecuaciones y notación de intervalos',type:'lectura'},{t:'10 ejercicios variados',type:'ejercicios'}]},
+    {name:'Funciones',time:'75 min',tasks:[{t:'Concepto, dominio y rango',type:'lectura'},{t:'Función lineal y cuadrática',type:'ejercicios'},{t:'Graficar y transformaciones',type:'ejercicios'},{t:'Composición de funciones (8 ejercicios)',type:'ejercicios'}]},
+    {name:'Exponentes, radicales y logaritmos',time:'75 min',tasks:[{t:'Propiedades de la potenciación',type:'lectura'},{t:'Radicales y racionalización',type:'ejercicios'},{t:'Logaritmos: definición y propiedades',type:'lectura'},{t:'Función exponencial y logarítmica',type:'ejercicios'}]},
+    {name:'Trigonometría',time:'90 min',tasks:[{t:'Razones y triángulo rectángulo',type:'lectura'},{t:'Ángulos notables 30°, 45°, 60°',type:'ejercicios'},{t:'Círculo unitario e identidades',type:'lectura'},{t:'Ecuaciones trigonométricas simples',type:'ejercicios'}]},
+    {name:'Límites y continuidad',time:'90 min',tasks:[{t:'Concepto intuitivo de límite',type:'lectura'},{t:'Cálculo de límites y límites laterales',type:'ejercicios'},{t:'Límites notables e indeterminaciones',type:'ejercicios'},{t:'Continuidad de una función',type:'ejercicios'}]},
+    {name:'La derivada: concepto',time:'90 min',tasks:[{t:'Razón de cambio y recta tangente',type:'lectura'},{t:'Definición de derivada por límite',type:'lectura'},{t:'Interpretación geométrica',type:'ejercicios'},{t:'Derivada por definición (5 ejercicios)',type:'ejercicios'}]},
+    {name:'Reglas de derivación',time:'90 min',tasks:[{t:'Regla de la potencia y constante',type:'lectura'},{t:'Reglas de suma, producto y cociente',type:'ejercicios'},{t:'Regla de la cadena',type:'ejercicios'},{t:'12 ejercicios de derivadas',type:'ejercicios'}]},
+    {name:'Aplicaciones de la derivada',time:'75 min',tasks:[{t:'Máximos y mínimos',type:'lectura'},{t:'Crecimiento y decrecimiento',type:'ejercicios'},{t:'Problemas de optimización',type:'ejercicios'},{t:'Repaso integrador de cálculo',type:'ejercicios'}]}
+  ]},
+  eco:{name:'Fundamentación Económica',emoji:'📊',color:'eco',badge:'Importante',goal:'Bases de micro y macroeconomía para tu primer curso de economía',topics:[
+    {name:'Introducción a la economía',time:'45 min',tasks:[{t:'¿Qué estudia la economía?',type:'lectura'},{t:'Micro vs macro y costo de oportunidad',type:'lectura'},{t:'Escasez y frontera de posibilidades',type:'lectura'},{t:'Apuntes propios',type:'ejercicios'}]},
+    {name:'Oferta y demanda',time:'60 min',tasks:[{t:'Ley de la demanda y su curva',type:'lectura'},{t:'Ley de la oferta y su curva',type:'lectura'},{t:'Equilibrio de mercado',type:'ejercicios'},{t:'Desplazamientos y problemas gráficos',type:'ejercicios'}]},
+    {name:'Elasticidad',time:'45 min',tasks:[{t:'Elasticidad precio de la demanda',type:'lectura'},{t:'Elasticidad ingreso',type:'lectura'},{t:'Cálculos e interpretación',type:'ejercicios'},{t:'8 ejercicios',type:'ejercicios'}]},
+    {name:'Consumidor y empresa',time:'60 min',tasks:[{t:'Utilidad marginal e indiferencia',type:'lectura'},{t:'Restricción presupuestaria',type:'ejercicios'},{t:'Costos y producción',type:'lectura'},{t:'Maximización de beneficios',type:'ejercicios'}]},
+    {name:'Estructuras de mercado',time:'45 min',tasks:[{t:'Competencia perfecta',type:'lectura'},{t:'Monopolio y oligopolio',type:'lectura'},{t:'Ejemplos reales',type:'ejercicios'},{t:'Mapa conceptual',type:'ejercicios'}]},
+    {name:'Macroeconomía básica',time:'60 min',tasks:[{t:'PIB: definición y cálculo',type:'lectura'},{t:'Inflación e IPC',type:'lectura'},{t:'Desempleo y tipos',type:'lectura'},{t:'Política fiscal y monetaria',type:'ejercicios'}]}
+  ]},
+  his:{name:'Historia Económica',emoji:'🏛️',color:'his',badge:'Lectura',goal:'Recorrido por la evolución económica desde lo preindustrial hasta hoy',topics:[
+    {name:'Economía preindustrial y mercantilismo',time:'45 min',tasks:[{t:'Economías agrarias y feudalismo',type:'lectura'},{t:'El mercantilismo y la acumulación',type:'lectura'},{t:'El comercio en la era moderna temprana',type:'lectura'},{t:'Línea de tiempo propia',type:'ejercicios'}]},
+    {name:'La Revolución Industrial',time:'45 min',tasks:[{t:'Causas y la máquina de vapor',type:'lectura'},{t:'Cambios sociales y urbanización',type:'lectura'},{t:'Capitalismo industrial',type:'lectura'},{t:'Resumen de impactos',type:'ejercicios'}]},
+    {name:'Pensamiento económico clásico',time:'60 min',tasks:[{t:'Adam Smith y la mano invisible',type:'lectura'},{t:'David Ricardo y la ventaja comparativa',type:'lectura'},{t:'Karl Marx y la crítica al capitalismo',type:'lectura'},{t:'Cuadro comparativo de autores',type:'ejercicios'}]},
+    {name:'El siglo XX económico',time:'60 min',tasks:[{t:'La Gran Depresión de 1929',type:'lectura'},{t:'Keynes y el Estado de bienestar',type:'lectura'},{t:'La posguerra y Bretton Woods',type:'lectura'},{t:'Resumen de la crisis del 29',type:'ejercicios'}]},
+    {name:'Globalización y economía actual',time:'45 min',tasks:[{t:'Neoliberalismo y apertura',type:'lectura'},{t:'Crisis de 2008',type:'lectura'},{t:'Economía digital y actual',type:'lectura'},{t:'Reflexión escrita',type:'ejercicios'}]},
+    {name:'Historia económica de Colombia/LatAm',time:'60 min',tasks:[{t:'De la colonia a la independencia económica',type:'lectura'},{t:'El café y los ciclos de exportación',type:'lectura'},{t:'Industrialización y siglo XX',type:'lectura'},{t:'Síntesis del caso colombiano',type:'ejercicios'}]}
+  ]},
+  red:{name:'Redacción y P. Crítico',emoji:'✍️',color:'red',badge:'Transversal',goal:'Escribir con claridad y pensar críticamente — te sirve en todas las materias',topics:[
+    {name:'El párrafo y la estructura textual',time:'45 min',tasks:[{t:'Idea principal y secundarias',type:'lectura'},{t:'Tipos de párrafo y conectores',type:'lectura'},{t:'Coherencia y cohesión',type:'ejercicios'},{t:'Escribe 3 párrafos modelo',type:'ejercicios'}]},
+    {name:'Tipos de texto y argumentación',time:'45 min',tasks:[{t:'Texto expositivo vs argumentativo',type:'lectura'},{t:'Tesis, argumentos y evidencia',type:'lectura'},{t:'Estructura de un argumento',type:'ejercicios'},{t:'Redacta un argumento propio',type:'ejercicios'}]},
+    {name:'Pensamiento crítico y falacias',time:'45 min',tasks:[{t:'¿Qué es pensar críticamente?',type:'lectura'},{t:'Falacias lógicas comunes',type:'lectura'},{t:'Evaluar fuentes y sesgos',type:'ejercicios'},{t:'Detecta 5 falacias en ejemplos',type:'ejercicios'}]},
+    {name:'El ensayo académico',time:'60 min',tasks:[{t:'Estructura: intro, cuerpo, conclusión',type:'lectura'},{t:'Cómo plantear una tesis sólida',type:'lectura'},{t:'Citación y referencias (APA básico)',type:'lectura'},{t:'Escribe un ensayo corto (1 página)',type:'ejercicios'}]}
+  ]}
+};
+
+const QUIZZES={
+  cal:[
+    {topic:'Factorización',qs:[{q:'Factoriza: x² + 5x + 6',o:['(x+2)(x+3)','(x+1)(x+6)','(x+2)(x+4)','(x−2)(x−3)'],a:0,h:'Suman 5 y multiplican 6.'},{q:'Factoriza: x² − 9',o:['(x−3)²','(x+3)(x−3)','(x−9)(x+1)','(x+9)(x−1)'],a:1,h:'Diferencia de cuadrados.'},{q:'Factoriza: 2x² + 4x',o:['2(x²+2x)','2x(x+2)','x(2x+4)','2x(x+4)'],a:1,h:'Factor común 2x.'},{q:'Factoriza: x² − 5x + 6',o:['(x−2)(x−3)','(x+2)(x+3)','(x−1)(x−6)','(x−2)(x+3)'],a:0,h:'−2 y −3.'},{q:'Factoriza: 3x² − 12',o:['3(x²−4)','3(x+2)(x−2)','(3x+6)(x−2)','3x(x−4)'],a:1,h:'Saca 3 y diferencia de cuadrados.'}]},
+    {topic:'Fracciones algebraicas',qs:[{q:'Simplifica: (x²−4)/(x+2)',o:['x−2','x+2','x²−2','(x−2)(x+2)'],a:0,h:'Diferencia de cuadrados arriba.'},{q:'(2x/3)·(9/x)',o:['6','2/3','6x²','18'],a:0,h:'Se cancela x; 2·9/3=6.'},{q:'1/x + 1/(x+1)',o:['2/(x²+x)','(2x+1)/(x²+x)','1/(2x+1)','2x/(x+1)'],a:1,h:'LCD = x(x+1).'},{q:'(6x²y)/(3xy²)',o:['2x/y','2y/x','2xy','6x/y'],a:0,h:'Cancela comunes.'},{q:'(x²−1)/x ÷ (x+1)/2',o:['2(x−1)/x','(x+1)/2x','2x/(x−1)','(x²−1)/2x'],a:0,h:'Recíproco y factoriza.'}]},
+    {topic:'Ecuaciones e inecuaciones',qs:[{q:'2x + 6 = 14',o:['x=4','x=10','x=3','x=7'],a:0,h:'Resta 6, divide 2.'},{q:'x² − 4 = 0',o:['x=2','x=±2','x=4','x=±4'],a:1,h:'x=±√4.'},{q:'x² + 3x + 2 = 0',o:['x=1,2','x=−1,−2','x=1,−2','x=−1,2'],a:1,h:'(x+1)(x+2)=0.'},{q:'Resuelve x − 3 > 2',o:['x>5','x<5','x>−1','x>1'],a:0,h:'Suma 3 a ambos lados.'},{q:'5(x−1)=2x+7',o:['x=3','x=4','x=5','x=2'],a:1,h:'Distribuye y agrupa.'}]},
+    {topic:'Funciones',qs:[{q:'Si f(x)=2x+3, f(4)=',o:['10','11','8','14'],a:1,h:'2(4)+3.'},{q:'Dominio de √(x−2):',o:['x≥0','x≥2','x>2','reales'],a:1,h:'x−2≥0.'},{q:'Si f(x)=x²−1, f(−3)=',o:['8','10','9','−10'],a:0,h:'9−1=8.'},{q:'f(x)=x² es:',o:['Lineal','Cuadrática','Exponencial','Constante'],a:1,h:'Variable al cuadrado.'},{q:'Pendiente de 3x−5:',o:['−5','3','5','−3'],a:1,h:'m en mx+b.'}]},
+    {topic:'Exponentes, radicales y logaritmos',qs:[{q:'x³·x²=',o:['x⁵','x⁶','x','x¹'],a:0,h:'Se suman exponentes.'},{q:'log₂(8)=',o:['2','3','4','8'],a:1,h:'2³=8.'},{q:'(x²)³=',o:['x⁵','x⁶','x⁸','x⁹'],a:1,h:'Se multiplican.'},{q:'log(a·b)=',o:['log a·log b','log a+log b','log a−log b','log a/log b'],a:1,h:'Producto → suma.'},{q:'5⁰=',o:['0','5','1','indef'],a:2,h:'Todo a la 0 es 1.'}]},
+    {topic:'Trigonometría',qs:[{q:'sen(θ)=',o:['ady/hip','op/hip','op/ady','hip/op'],a:1,h:'SOH.'},{q:'cos(60°)=',o:['√3/2','1/2','√2/2','1'],a:1,h:'Notable.'},{q:'tan(45°)=',o:['0','√3','1','1/2'],a:2,h:'sen/cos=1.'},{q:'Identidad fundamental:',o:['sen²+cos²=2','sen²+cos²=1','sen+cos=1','sen²−cos²=1'],a:1,h:'=1.'},{q:'sen(30°)=',o:['√3/2','√2/2','1/2','1'],a:2,h:'Notable.'}]},
+    {topic:'Límites y continuidad',qs:[{q:'lím(x→2) f(x) es:',o:['f(2)','El valor al que tiende f cuando x→2','La derivada','El área'],a:1,h:'Comportamiento cerca del punto.'},{q:'Si f(x)=2x+1, lím(x→3)=',o:['7','6','8','1'],a:0,h:'Continua: f(3)=7.'},{q:'lím(x→0)(sen x)/x=',o:['0','∞','1','sen0'],a:2,h:'Límite notable=1.'},{q:'Si límites laterales difieren:',o:['Vale el mayor','Vale el menor','No existe','Promedio'],a:2,h:'Deben coincidir.'},{q:'lím(x→∞) 1/x=',o:['1','∞','−1','0'],a:3,h:'Tiende a 0.'}]},
+    {topic:'La derivada: concepto',qs:[{q:'La derivada representa:',o:['El área bajo la curva','La razón de cambio / pendiente de la tangente','El valor máximo','El límite inferior'],a:1,h:'Pendiente de la recta tangente.'},{q:'La derivada se define como:',o:['Una suma','El límite del cociente incremental','Una integral','Un producto'],a:1,h:'lím cuando Δx→0 de Δy/Δx.'},{q:'Si f es constante, f′(x)=',o:['1','x','0','la constante'],a:2,h:'Una constante no cambia.'},{q:'La pendiente de la tangente en un punto es:',o:['f(x)','f′(x)','0 siempre','el área'],a:1,h:'Es justo la derivada ahí.'},{q:'Δy/Δx cuando Δx→0 es:',o:['La media','La derivada','La integral','El promedio'],a:1,h:'Definición de derivada.'}]},
+    {topic:'Reglas de derivación',qs:[{q:'d/dx(x³)=',o:['3x²','x²','3x','x³'],a:0,h:'Regla de la potencia: n·xⁿ⁻¹.'},{q:'d/dx(5)=',o:['5','0','1','5x'],a:1,h:'Derivada de constante = 0.'},{q:'d/dx(x²+3x)=',o:['2x+3','2x','x+3','2x+3x'],a:0,h:'Derivada término a término.'},{q:'d/dx(7x)=',o:['0','7','7x','x'],a:1,h:'Coeficiente por derivada de x.'},{q:'La regla de la cadena sirve para:',o:['Sumas','Funciones compuestas','Constantes','Restas'],a:1,h:'Derivar función dentro de función.'}]},
+    {topic:'Aplicaciones de la derivada',qs:[{q:'En un máximo o mínimo, f′(x)=',o:['1','0','∞','−1'],a:1,h:'La tangente es horizontal.'},{q:'Si f′(x)>0, la función:',o:['Decrece','Crece','Es constante','No existe'],a:1,h:'Pendiente positiva = sube.'},{q:'Si f′(x)<0, la función:',o:['Crece','Decrece','Es constante','Es máxima'],a:1,h:'Pendiente negativa = baja.'},{q:'Optimizar es:',o:['Graficar','Hallar máximos o mínimos','Sumar','Integrar'],a:1,h:'Encontrar el mejor valor.'},{q:'Un punto crítico se halla:',o:['f(x)=0','f′(x)=0 o no existe','x=0','y=0'],a:1,h:'Donde la derivada se anula.'}]}
+  ],
+  eco:[
+    {topic:'Introducción a la economía',qs:[{q:'La economía estudia:',o:['Solo el dinero','La asignación de recursos escasos','La contabilidad','Los impuestos'],a:1,h:'Recursos escasos.'},{q:'La microeconomía estudia:',o:['El país','Individuos y empresas','La inflación','El comercio mundial'],a:1,h:'Unidades individuales.'},{q:'Costo de oportunidad es:',o:['El precio','Lo que renuncias al elegir','Un impuesto','La ganancia'],a:1,h:'Alternativa sacrificada.'},{q:'La macroeconomía estudia:',o:['Una empresa','Agregados como PIB','Un consumidor','Un mercado'],a:1,h:'La economía en conjunto.'},{q:'Un bien escaso:',o:['Es gratis','Tiene oferta limitada','Nadie lo quiere','Es ilegal'],a:1,h:'Recurso limitado.'}]},
+    {topic:'Oferta y demanda',qs:[{q:'Si el precio sube, la Qd:',o:['Sube','Baja','Igual','Depende'],a:1,h:'Ley de la demanda.'},{q:'Más ingreso desplaza la demanda:',o:['Izquierda','Derecha','No la mueve','Vertical'],a:1,h:'Más capacidad de compra.'},{q:'El equilibrio:',o:['Oferta máxima','Demanda mínima','Qof=Qd','Precio cero'],a:2,h:'El mercado se vacía.'},{q:'Precio bajo el equilibrio:',o:['Excedente','Escasez','Equilibrio','Deflación'],a:1,h:'Escasez.'},{q:'Desplaza oferta a la derecha:',o:['Más impuestos','Mejor tecnología','Sube precio','Menos subsidios'],a:1,h:'Producir más igual costo.'}]},
+    {topic:'Elasticidad',qs:[{q:'La elasticidad precio mide:',o:['Oferta ante precio','Cambio de Qd ante precio','El ingreso','Pendiente oferta'],a:1,h:'Sensibilidad al precio.'},{q:'Si |Ep|>1:',o:['Inelástica','Elástica','Perf. inelástica','Unitaria'],a:1,h:'Muy sensible.'},{q:'Primera necesidad → demanda:',o:['Elástica','Inelástica','Perf. elástica','Unitaria'],a:1,h:'Se necesita igual.'},{q:'P +10%, Qd −5%. Ep=',o:['2','0.5','0.1','5'],a:1,h:'5/10.'},{q:'Elasticidad ingreso + = bien:',o:['Inferior','Normal','Complementario','Sustituto'],a:1,h:'Ingreso↑→consumo↑.'}]},
+    {topic:'Consumidor y empresa',qs:[{q:'Utilidad marginal:',o:['Total','Satisfacción de 1 unidad extra','Costo','Precio'],a:1,h:'Una unidad adicional.'},{q:'La UM tiende a:',o:['Subir siempre','Decrecer','Constante','Cero'],a:1,h:'Decreciente.'},{q:'Costos fijos:',o:['Cambian con producción','No cambian','Suben siempre','Cero'],a:1,h:'Ej. renta.'},{q:'Costo marginal:',o:['Total','De 1 unidad más','Fijo','Ingreso'],a:1,h:'Siguiente unidad.'},{q:'Maximiza beneficio si:',o:['I=CF','IMg=CMg','C=0','P=0'],a:1,h:'Regla IMg=CMg.'}]},
+    {topic:'Estructuras de mercado',qs:[{q:'Competencia perfecta:',o:['Una empresa','Muchos agentes','Dos empresas','Un comprador'],a:1,h:'Producto homogéneo.'},{q:'Monopolio:',o:['Muchas','Una sola empresa','Dos','Ninguna'],a:1,h:'Un oferente.'},{q:'En comp. perfecta la empresa es:',o:['Fijadora','Tomadora de precios','Monopolista','Reguladora'],a:1,h:'Acepta el precio.'},{q:'Oligopolio:',o:['Una','Pocas dominantes','Infinitas','Ninguna'],a:1,h:'Pocos grandes.'},{q:'El monopolista:',o:['Baja precios','Cobra más, produce menos','Produce infinito','Sin poder'],a:1,h:'Poder de mercado.'}]},
+    {topic:'Macroeconomía básica',qs:[{q:'El PIB mide:',o:['El ahorro','Bienes y servicios finales producidos','Ingreso de hogares','Exportaciones'],a:1,h:'Producción total.'},{q:'La inflación es:',o:['Caída del PIB','Aumento sostenido de precios','Menos desempleo','Más exportación'],a:1,h:'Suben los precios.'},{q:'Política fiscal expansiva:',o:['Menos gasto','Más impuestos','Más gasto o menos impuestos','Sube tasas'],a:2,h:'Inyecta dinero.'},{q:'Banco central busca:',o:['Empleo directo','Controlar inflación','Recaudar','Financiar gasto'],a:1,h:'Política monetaria.'},{q:'Desempleo friccional:',o:['Recesión','Entre trabajos','Industrias muertas','Salarios altos'],a:1,h:'Temporal y normal.'}]}
+  ],
+  his:[
+    {topic:'Economía preindustrial y mercantilismo',qs:[{q:'El mercantilismo buscaba:',o:['Libre comercio total','Acumular metales preciosos','Abolir el comercio','Igualdad de ingresos'],a:1,h:'Riqueza = oro y plata acumulados.'},{q:'La economía feudal se basaba en:',o:['La industria','La agricultura y la tierra','Los servicios','La banca'],a:1,h:'Tierra y trabajo agrario.'},{q:'El mercantilismo favorecía:',o:['Importar mucho','Exportar más que importar','No comerciar','Solo consumo interno'],a:1,h:'Balanza comercial positiva.'},{q:'Periodo del mercantilismo:',o:['Siglos XVI–XVIII','Siglo XX','Edad Antigua','Hoy'],a:0,h:'Era moderna temprana.'}]},
+    {topic:'La Revolución Industrial',qs:[{q:'Invento clave de la Rev. Industrial:',o:['El internet','La máquina de vapor','El automóvil','El teléfono'],a:1,h:'Watt, siglo XVIII.'},{q:'Empezó en:',o:['Francia','Inglaterra','Alemania','EE.UU.'],a:1,h:'Gran Bretaña, ~1760.'},{q:'Un efecto social fue:',o:['Despoblación','Urbanización masiva','Fin del comercio','Menos fábricas'],a:1,h:'La gente migró a las ciudades.'},{q:'Dio origen al:',o:['Feudalismo','Capitalismo industrial','Mercantilismo','Trueque'],a:1,h:'Fábricas y trabajo asalariado.'}]},
+    {topic:'Pensamiento económico clásico',qs:[{q:'"La mano invisible" es de:',o:['Marx','Adam Smith','Keynes','Ricardo'],a:1,h:'La riqueza de las naciones, 1776.'},{q:'La ventaja comparativa es de:',o:['Smith','David Ricardo','Marx','Keynes'],a:1,h:'Base del comercio internacional.'},{q:'Karl Marx criticó:',o:['El feudalismo','El capitalismo','El socialismo','El mercantilismo'],a:1,h:'El Capital, plusvalía.'},{q:'Adam Smith defendía:',o:['El control estatal total','El libre mercado','La planificación central','El trueque'],a:1,h:'Mercados libres.'}]},
+    {topic:'El siglo XX económico',qs:[{q:'La Gran Depresión empezó en:',o:['1919','1929','1945','1973'],a:1,h:'Crac de Wall Street, 1929.'},{q:'Keynes proponía:',o:['No intervenir','Intervención del Estado en crisis','Abolir el dinero','Solo ahorrar'],a:1,h:'Estímulo de la demanda.'},{q:'Bretton Woods (1944) creó:',o:['La OMC','El FMI y el Banco Mundial','La ONU','La UE'],a:1,h:'Orden financiero de posguerra.'},{q:'El Estado de bienestar busca:',o:['Eliminar impuestos','Protección social','Cerrar fronteras','Privatizar todo'],a:1,h:'Salud, educación, pensiones.'}]},
+    {topic:'Globalización y economía actual',qs:[{q:'El neoliberalismo promueve:',o:['Más Estado','Libre mercado y apertura','Autarquía','Planificación central'],a:1,h:'Desregulación y apertura.'},{q:'La crisis financiera global fue en:',o:['1998','2008','2015','2020'],a:1,h:'Burbuja hipotecaria de EE.UU.'},{q:'La economía digital se basa en:',o:['Agricultura','Datos y tecnología','Minería','Trueque'],a:1,h:'Plataformas e información.'},{q:'Globalización significa:',o:['Cerrar mercados','Integración mundial de economías','Menos comercio','Solo comercio local'],a:1,h:'Interconexión global.'}]},
+    {topic:'Historia económica de Colombia/LatAm',qs:[{q:'El principal producto de exportación de Colombia en el s.XX fue:',o:['Petróleo','Café','Banano','Carbón'],a:1,h:'La economía cafetera.'},{q:'América Latina dependió de:',o:['La industria pesada','La exportación de materias primas','La tecnología','La banca'],a:1,h:'Modelo primario-exportador.'},{q:'La industrialización por sustitución de importaciones buscaba:',o:['Importar más','Producir internamente lo que se importaba','Cerrar fábricas','Exportar todo'],a:1,h:'ISI, mediados del s.XX.'},{q:'La economía colonial se basó en:',o:['La industria','La extracción de recursos','Los servicios','El turismo'],a:1,h:'Oro, plata y monocultivos.'}]}
+  ],
+  red:[
+    {topic:'El párrafo y la estructura textual',qs:[{q:'La idea principal de un párrafo:',o:['Es siempre la última','Expresa el tema central','Es un ejemplo','No existe'],a:1,h:'Las demás la apoyan.'},{q:'Los conectores sirven para:',o:['Adornar','Enlazar ideas con coherencia','Rellenar','Confundir'],a:1,h:'Dan fluidez y lógica.'},{q:'La cohesión es:',o:['El tamaño del texto','La conexión entre las partes','El número de párrafos','El título'],a:1,h:'Enlace gramatical entre ideas.'},{q:'Un buen párrafo trata:',o:['Muchas ideas sueltas','Una idea central','Solo datos','Solo preguntas'],a:1,h:'Unidad temática.'}]},
+    {topic:'Tipos de texto y argumentación',qs:[{q:'Un texto argumentativo busca:',o:['Solo informar','Convencer con razones','Narrar','Describir'],a:1,h:'Defiende una postura.'},{q:'La tesis es:',o:['Un ejemplo','La idea que se defiende','Una cita','La conclusión'],a:1,h:'La postura central.'},{q:'Un argumento necesita:',o:['Solo opinión','Razones y evidencia','Adjetivos','Preguntas'],a:1,h:'Sustento que respalde la tesis.'},{q:'Texto expositivo:',o:['Defiende una postura','Explica o informa','Persuade','Ordena'],a:1,h:'Presenta información objetiva.'}]},
+    {topic:'Pensamiento crítico y falacias',qs:[{q:'Pensar críticamente es:',o:['Criticar todo','Evaluar argumentos con razón','Estar en desacuerdo','Memorizar'],a:1,h:'Analizar con criterio.'},{q:'Atacar a la persona y no su idea es la falacia:',o:['Ad hominem','Hombre de paja','Falsa causa','Autoridad'],a:0,h:'Ad hominem.'},{q:'Una fuente confiable suele ser:',o:['Anónima','Verificable y experta','Viral','Sin fecha'],a:1,h:'Autoría y respaldo.'},{q:'Una falacia es:',o:['Un argumento válido','Un razonamiento engañoso','Una cita','Un dato'],a:1,h:'Parece válido pero no lo es.'}]},
+    {topic:'El ensayo académico',qs:[{q:'Un ensayo se estructura en:',o:['Solo conclusión','Introducción, cuerpo y conclusión','Solo título','Preguntas'],a:1,h:'Tres partes clásicas.'},{q:'La introducción debe:',o:['Resolver todo','Presentar el tema y la tesis','Citar todo','Concluir'],a:1,h:'Plantea el tema y la postura.'},{q:'Citar fuentes sirve para:',o:['Alargar','Dar respaldo y evitar plagio','Adornar','Confundir'],a:1,h:'Crédito y rigor.'},{q:'La conclusión:',o:['Agrega temas nuevos','Cierra y sintetiza','Es opcional','Repite la intro igual'],a:1,h:'Recoge lo argumentado.'}]}
+  ]
+};
+
+const ACHIEVEMENTS=[
+  {id:'first_step',icon:'🌱',name:'Primer paso',desc:'Tu primera tarea',check:db=>db.tasks.filter(t=>t.done).length>=1},
+  {id:'streak_3',icon:'🔥',name:'Racha de 3',desc:'3 días seguidos',check:db=>getStreak(db)>=3},
+  {id:'streak_7',icon:'🌟',name:'Racha de 7',desc:'Una semana',check:db=>getStreak(db)>=7},
+  {id:'first_quiz',icon:'📝',name:'Primer test',desc:'Evalúa un tema',check:db=>Object.keys(db.scores).length>=1},
+  {id:'perfect_quiz',icon:'💯',name:'Perfecta',desc:'100% en un test',check:db=>Object.values(db.scores).some(s=>s.pct===100)},
+  {id:'tasks_15',icon:'🪴',name:'15 tareas',desc:'Vas creciendo',check:db=>db.tasks.filter(t=>t.done).length>=15},
+  {id:'tasks_40',icon:'🌷',name:'40 tareas',desc:'Buen ritmo',check:db=>db.tasks.filter(t=>t.done).length>=40},
+  {id:'topic_done',icon:'✅',name:'Tema completo',desc:'Termina un tema',check:db=>{for(const s of db.subjects){const byT={};db.tasks.filter(t=>t.subjId===s.id&&t.topicIdx!=null).forEach(t=>{(byT[t.topicIdx]=byT[t.topicIdx]||[]).push(t);});for(const arr of Object.values(byT))if(arr.length&&arr.every(t=>t.done))return true;}return false;}},
+  {id:'all_cal',icon:'📐',name:'Cálculo full',desc:'Evalúa todo cálculo',check:db=>QUIZZES.cal.every((_,i)=>db.scores['cal-'+i])},
+  {id:'all_eco',icon:'📊',name:'Economista',desc:'Evalúa toda eco',check:db=>QUIZZES.eco.every((_,i)=>db.scores['eco-'+i])},
+  {id:'avg_80',icon:'⭐',name:'Promedio 80+',desc:'Excelencia',check:db=>{const v=Object.values(db.scores);if(v.length<4)return false;return v.reduce((a,s)=>a+s.pct,0)/v.length>=80;}},
+  {id:'calculo_ready',icon:'🎓',name:'Lista p/ derivar',desc:'Pasa derivadas',check:db=>db.scores['cal-8']&&db.scores['cal-8'].pct>=60}
+];
+
+function getStreak(db){const dates=new Set(db.tasks.filter(t=>t.done&&t.completedDate).map(t=>t.completedDate));if(!dates.size)return 0;let s=0;const d=new Date();while(true){const k=d.toISOString().slice(0,10);if(dates.has(k)){s++;d.setDate(d.getDate()-1);}else break;}return s;}
+
+const COLORHEX={cal:'#7C5CBF',eco:'#9B4A8A',his:'#6B4FA0',red:'#B07AC9',rev:'#B07AC9'};
+
+let db={subjects:[],tasks:[],scores:{},unlocked:[]};
+let currentDetailId=null,calDate=new Date(2026,5,1),selectedCalDate=null,currentTab='hoy',quiz=null;
+
+function loadDB(){try{const s=localStorage.getItem('planv_pensum_v1');if(s)db=JSON.parse(s);}catch(e){}if(!db.scores)db.scores={};if(!db.unlocked)db.unlocked=[];if(!db.subjects||!db.subjects.length)seed();else renderAll();}
+function saveDB(){try{localStorage.setItem('planv_pensum_v1',JSON.stringify(db));}catch(e){}}
+
+function seed(){
+  db={subjects:[],tasks:[],scores:{},unlocked:[]};
+  let sid=1;const byKey={};
+  for(const[key,c]of Object.entries(SUBJECTS_DEF)){const subj={id:sid++,key,name:c.name,color:c.color,emoji:c.emoji,badge:c.badge,goal:c.goal,topics:c.topics.map(t=>t.name),times:c.topics.map(t=>t.time)};db.subjects.push(subj);byKey[key]=subj;}
+  // Días de estudio: lunes a sábado, del 1 de junio al 18 de julio 2026 (domingos libres)
+  const dates=[];
+  for(let d=new Date(2026,5,1);d<=new Date(2026,6,18);d.setDate(d.getDate()+1)){if(d.getDay()!==0)dates.push(d.toISOString().slice(0,10));}
+  const T=(k,i)=>({t:'topic',k,i});
+  const R=(title,time,tasks)=>({t:'rev',title,time,tasks});
+  // Cálculo aparece casi el doble. 42 días: 27 de tema + 15 de repaso/simulacro
+  const schedule=[
+    // Semana 1
+    T('cal',0),T('eco',0),T('cal',1),T('red',0),
+    R('Repaso · Cálculo (factorización y fracciones)','45 min',['Rehacer 8 ejercicios de factorización sin apuntes','Cazar errores de signo (usa paréntesis)','5 fracciones algebraicas mezcladas','Evaluador: Factorización + Fracciones algebraicas']),
+    R('Repaso semana 1 (mixto)','45 min',['Resumir qué estudia la economía','Repasar idea principal y párrafo','Evaluador: Introducción a la economía']),
+    // Semana 2
+    T('cal',2),T('his',0),T('cal',3),T('eco',1),
+    R('Repaso · Cálculo (ecuaciones y funciones)','45 min',['6 ecuaciones e inecuaciones','Graficar 3 funciones de memoria','Evaluador: Ecuaciones + Funciones']),
+    R('Repaso semana 2 (mixto)','45 min',['Línea de tiempo del mercantilismo','Repasar oferta y demanda','Evaluador: Oferta y demanda']),
+    // Semana 3
+    T('cal',4),T('red',1),T('cal',5),T('eco',2),T('his',1),
+    R('Repaso · Cálculo (exponentes, logs y trig)','45 min',['6 ejercicios de potencias y logaritmos','Memorizar ángulos notables','Evaluador: Exponentes y logaritmos + Trigonometría']),
+    // Semana 4
+    T('cal',6),T('eco',3),T('his',2),T('cal',7),T('red',2),
+    R('Repaso · Cálculo (límites y derivada)','45 min',['5 límites de práctica','Repasar definición de derivada','Evaluador: Límites + La derivada']),
+    // Semana 5
+    T('cal',8),T('eco',4),T('his',3),T('cal',9),T('red',3),
+    R('Repaso semana 5 (mixto)','60 min',['12 derivadas con todas las reglas','Repasar estructuras de mercado','Evaluador: Reglas de derivación']),
+    // Semana 6
+    T('eco',5),T('his',4),
+    R('Repaso · Cálculo integrador','60 min',['10 ejercicios mezclando todo el cálculo','Volver a los temas con más errores','Evaluador: Aplicaciones de la derivada']),
+    R('Repaso · Economía completo','45 min',['Repasar micro y macro','Resumen de una página','Evaluador de los temas de economía']),
+    R('Repaso · Historia económica','45 min',['Cuadro de autores clásicos','Repasar siglo XX y crisis del 29','Evaluador: Pensamiento clásico + Siglo XX']),
+    R('Repaso · Redacción','45 min',['Repasar falacias y argumentación','Escribir un párrafo argumentativo','Evaluador: Pensamiento crítico']),
+    // Semana 7 (hasta el 18 de julio)
+    T('his',5),
+    R('Repaso general mixto','60 min',['10 ejercicios de cálculo variados','15 preguntas de economía e historia','Lista final de dudas']),
+    R('Simulacro de Cálculo I','75 min',['Prueba cronometrada con todos los temas','Revisar errores con calma','Repetir en el Evaluador lo que esté bajo 80%']),
+    R('Simulacro de Economía e Historia','60 min',['Prueba cronometrada de ambas','Revisar conceptos fallidos','Repetir tests bajo 80%']),
+    R('Repaso final · Redacción y dudas','45 min',['Escribir un ensayo corto de práctica','Revisar citación básica APA','Cerrar dudas pendientes']),
+    R('Preparación final 🎉','30 min',['Repasar solo lo más flojo','Organizar apuntes y materiales','¡Lista para el 21 de julio!'])
+  ];
+  let tid=100;
+  schedule.forEach((item,idx)=>{
+    const date=dates[idx];if(!date)return;
+    if(item.t==='topic'){const subj=byKey[item.k];const def=SUBJECTS_DEF[item.k].topics[item.i];def.tasks.forEach(task=>db.tasks.push({id:tid++,subjId:subj.id,subjKey:item.k,text:task.t,type:task.type,date,done:false,topicIdx:item.i,time:def.time,session:def.name}));}
+    else{item.tasks.forEach(tx=>db.tasks.push({id:tid++,subjId:0,subjKey:'rev',text:tx,type:'repaso',date,done:false,topicIdx:null,time:item.time,session:item.title}));}
+  });
+  saveDB();renderAll();
+}
+
+function renderAll(){setDateLabel();renderTasks();renderSubjects();renderCalendar();renderProgress();renderAchievements();renderEvaluador();updateStreak();}
+function setDateLabel(){
+  document.getElementById('date-label').textContent=new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});
+  const start=new Date(2026,6,21);const now=new Date();const days=Math.ceil((start-now)/(1000*60*60*24));
+  document.getElementById('countdown').textContent=days>0?`📅 Faltan ${days} días para el 21 de julio`:'¡Empezó el semestre!';
+}
+function updateStreak(){const s=getStreak(db);document.getElementById('streak-text').textContent=s>0?`${s} día${s>1?'s':''} de racha`:'Empieza tu racha hoy';}
+function today(){return new Date().toISOString().slice(0,10);}
+
+function showTab(t){currentTab=t;document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelector(`.nav-btn[onclick="showTab('${t}')"]`).classList.add('active');document.getElementById('tab-'+t).classList.add('active');document.getElementById('fab').style.display=(t==='hoy'||t==='materias')?'flex':'none';if(t==='logros'){renderProgress();renderAchievements();}if(t==='calendario'){renderCalendar();renderCheckpoints();}if(t==='hoy')renderTasks();if(t==='evaluador'){quiz=null;renderEvaluador();}window.scrollTo({top:0,behavior:'smooth'});}
+function handleFab(){if(currentTab!=='materias')openAddTask();}
+function sessionInfo(t){const s=db.subjects.find(x=>x.id===t.subjId);return{name:t.session||(s?s.name:'Repaso'),emoji:s?s.emoji:'🔁',time:t.time||''};}
+
+function renderTasks(){
+  const todayStr=today();
+  const todayT=db.tasks.filter(t=>t.date===todayStr).sort((a,b)=>a.done-b.done);
+  const upT=db.tasks.filter(t=>t.date>todayStr&&!t.done).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,14);
+  const overdueT=db.tasks.filter(t=>t.date<todayStr&&!t.done);
+  let todayHTML;
+  if(todayT.length){const inf=sessionInfo(todayT[0]);todayHTML=`<div class="session-head">${inf.emoji} ${inf.name}${inf.time?`<span class="session-time">⏱ ${inf.time}</span>`:''}</div><div class="card">${todayT.map(t=>taskHTML(t)).join('')}</div>`;}
+  else todayHTML='<div class="empty"><div class="empty-emoji">🌿</div>Sin tareas para hoy.<br>Si es domingo, ¡es día de descanso!</div>';
+  document.getElementById('tasks-today').innerHTML=todayHTML;
+  let up='';
+  if(overdueT.length)up+=`<p class="section-title" style="color:var(--berry);margin:.4rem 0">⚠ Atrasadas (${overdueT.length})</p><div class="card" style="border-color:var(--lilac)">${overdueT.map(t=>taskHTML(t,true)).join('')}</div>`;
+  if(upT.length)up+=`<div class="card">${upT.map(t=>taskHTML(t)).join('')}</div>`;
+  document.getElementById('tasks-upcoming').innerHTML=up||'<div class="empty"><div class="empty-emoji">🔮</div>Todo al día</div>';
+  renderAlerts();
+}
+function taskHTML(t,overdue=false){const inf=sessionInfo(t);const d=new Date(t.date+'T12:00:00');const label=d.toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short'});const ti={lectura:'📖',ejercicios:'✏️',repaso:'🔁'}[t.type]||'';const cls=['cal','eco','his','red'].includes(t.subjKey)?t.subjKey:'rev';return `<div class="task-item"><input class="task-check" type="checkbox" ${t.done?'checked':''} onchange="toggleTask(${t.id},this.checked)"><div style="flex:1;min-width:0"><div class="task-text ${t.done?'done':''}">${ti} ${t.text}</div><div class="task-meta"><span class="tag tag-${cls}">${inf.emoji} ${inf.name}</span><span style="color:${overdue?'var(--berry)':'var(--text-s)'};font-weight:600">${label}</span></div></div></div>`;}
+function toggleTask(id,val){const t=db.tasks.find(t=>t.id===id);if(!t)return;t.done=val;if(val){t.completedDate=today();showToast('🌱 ¡Tarea completada!');}else delete t.completedDate;saveDB();checkAchievements();renderTasks();renderSubjects();renderCalendar();updateStreak();}
+function renderAlerts(){const todayStr=today();const tm=new Date();tm.setDate(tm.getDate()+1);const tStr=tm.toISOString().slice(0,10);const overdue=db.tasks.filter(t=>!t.done&&t.date<todayStr);const soon=db.tasks.filter(t=>!t.done&&t.date===tStr);let h='';if(overdue.length)h+=`<div class="alert alert-warn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span><strong>${overdue.length}</strong> tarea${overdue.length>1?'s':''} atrasada${overdue.length>1?'s':''}</span></div>`;if(soon.length)h+=`<div class="alert alert-warn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span><strong>${soon.length}</strong> para mañana</span></div>`;document.getElementById('alerts-box').innerHTML=h;}
+
+function renderSubjects(){document.getElementById('subjects-list').innerHTML=db.subjects.map(s=>{const ts=db.tasks.filter(t=>t.subjId===s.id);const d=ts.filter(t=>t.done).length;const pct=ts.length?Math.round(d/ts.length*100):0;const hex=COLORHEX[s.color];return `<div class="subj-card" style="--clr:${hex}" onclick="openDetail(${s.id})"><div class="subj-header"><span class="subj-emoji">${s.emoji}</span><div style="flex:1;min-width:0"><div class="subj-name">${s.name}<span class="subj-badge" style="background:${hex}22;color:${hex}">${s.badge}</span></div><div class="subj-goal">${s.goal}</div></div></div><div class="progress-wrap"><div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${hex}"></div></div><div class="progress-label"><span>${d}/${ts.length} tareas</span><span>${pct}%</span></div></div></div>`;}).join('');}
+function openDetail(id){currentDetailId=id;const s=db.subjects.find(s=>s.id===id);if(!s)return;const hex=COLORHEX[s.color];document.getElementById('detail-title').textContent=`${s.emoji} ${s.name}`;document.getElementById('detail-goal').textContent=s.goal;document.getElementById('detail-checkpoints').innerHTML=s.topics.map((tn,i)=>{const ts=db.tasks.filter(t=>t.subjId===id&&t.topicIdx===i);const done=ts.filter(t=>t.done).length;const allDone=ts.length>0&&done===ts.length;const inProg=done>0&&!allDone;return `<div class="checkpoint ${allDone?'done':''} ${inProg?'current':''}"><div class="cp-circle">${allDone?'✓':i+1}</div><div class="cp-content"><div class="cp-name">${tn}</div><div class="cp-stats">${done}/${ts.length} tareas ${allDone?'✨':''}</div></div></div>`;}).join('');document.getElementById('detail-topics').innerHTML=s.topics.map((tn,i)=>{const ts=db.tasks.filter(t=>t.subjId===id&&t.topicIdx===i);const done=ts.filter(t=>t.done).length;const pct=ts.length?Math.round(done/ts.length*100):0;return `<div class="topic-block"><div class="topic-title"><span>${tn}</span><span style="color:var(--text-s);font-size:11px">${done}/${ts.length}</span></div><div class="topic-time">⏱ Tiempo recomendado: ${s.times[i]||'—'}</div><div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${hex}"></div></div><div style="margin-top:8px">${ts.map(t=>`<div class="sub-item"><span style="font-size:11px;margin-top:1px">${t.done?'✅':'⚪'}</span><span style="${t.done?'text-decoration:line-through;color:var(--text-s)':''}">${t.text}</span></div>`).join('')}</div></div>`;}).join('');openModal('modal-detail');}
+function openAddTask(){document.getElementById('nt-subj').innerHTML=db.subjects.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');document.getElementById('nt-date').value=today();document.getElementById('nt-desc').value='';openModal('modal-task');}
+function saveManualTask(){const desc=document.getElementById('nt-desc').value.trim();const sid=parseInt(document.getElementById('nt-subj').value);const date=document.getElementById('nt-date').value;if(!desc||!date)return;const s=db.subjects.find(s=>s.id===sid);db.tasks.push({id:Date.now(),subjId:sid,subjKey:s.key,text:desc,type:'ejercicios',date,done:false,topicIdx:0,time:'',session:s.name});saveDB();closeModal('modal-task');renderTasks();renderCalendar();}
+
+function changeMonth(d){if(d===0)calDate=new Date();else calDate=new Date(calDate.getFullYear(),calDate.getMonth()+d,1);renderCalendar();}
+function renderCalendar(){const year=calDate.getFullYear(),month=calDate.getMonth();document.getElementById('cal-month-label').textContent=calDate.toLocaleDateString('es-CO',{month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase());const startDow=(new Date(year,month,1).getDay()+6)%7;const dim=new Date(year,month+1,0).getDate();const todayStr=today();let html=['L','M','M','J','V','S','D'].map(d=>`<div class="cal-day-name">${d}</div>`).join('');const prev=new Date(year,month,0).getDate();for(let i=startDow-1;i>=0;i--)html+=`<div class="cal-day other">${prev-i}</div>`;for(let day=1;day<=dim;day++){const dateObj=new Date(year,month,day);const isSunday=dateObj.getDay()===0;const dStr=`${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;const tasks=db.tasks.filter(t=>t.date===dStr);const done=tasks.filter(t=>t.done).length;const overdue=tasks.length>0&&dStr<todayStr&&done<tasks.length;const allDone=tasks.length>0&&done===tasks.length;let cls='cal-day';if(dStr===todayStr)cls+=' today';else if(isSunday&&!tasks.length)cls+=' sunday';else if(overdue)cls+=' overdue';else if(allDone)cls+=' all-done';else if(tasks.length)cls+=' has-tasks';if(dStr===selectedCalDate)cls+=' selected';const subj=[...new Set(tasks.map(t=>t.subjKey))];const dots=subj.map(k=>`<span class="cal-dot" style="background:${COLORHEX[k]||'#B07AC9'}"></span>`).join('');html+=`<div class="${cls}" onclick="selectCalDay('${dStr}')"><span>${day}</span>${dots?`<div class="cal-dots">${dots}</div>`:''}</div>`;}document.getElementById('cal-grid').innerHTML=html;renderDayDetail();}
+function selectCalDay(d){selectedCalDate=selectedCalDate===d?null:d;renderCalendar();}
+function renderDayDetail(){const c=document.getElementById('day-detail-wrap');if(!selectedCalDate){c.innerHTML='';return;}const tasks=db.tasks.filter(t=>t.date===selectedCalDate);const lbl=new Date(selectedCalDate+'T12:00:00').toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});let head='';if(tasks.length){const inf=sessionInfo(tasks[0]);head=`<div style="font-size:12px;color:var(--text-m);margin-bottom:8px;font-weight:600">${inf.emoji} ${inf.name}${inf.time?` · ⏱ ${inf.time}`:''}</div>`;}c.innerHTML=`<div class="day-detail"><div class="day-detail-title">📌 ${lbl}</div>${head}${tasks.length?tasks.map(t=>{const inf=sessionInfo(t);const ti={lectura:'📖',ejercicios:'✏️',repaso:'🔁'}[t.type]||'';const cls=['cal','eco','his','red'].includes(t.subjKey)?t.subjKey:'rev';return `<div class="task-item" style="padding:8px 0"><input class="task-check" type="checkbox" ${t.done?'checked':''} onchange="toggleTask(${t.id},this.checked)"><div style="flex:1;min-width:0"><div class="task-text ${t.done?'done':''}">${ti} ${t.text}</div><span class="tag tag-${cls}" style="margin-top:4px;display:inline-block">${inf.name}</span></div></div>`;}).join(''):'<p style="font-size:12.5px;color:var(--text-s)">Día de descanso 🌿</p>'}</div>`;}
+function renderCheckpoints(){document.getElementById('checkpoints-list').innerHTML=db.subjects.map(s=>{const hex=COLORHEX[s.color];let cur=-1;for(let i=0;i<s.topics.length;i++){const ts=db.tasks.filter(t=>t.subjId===s.id&&t.topicIdx===i);if(ts.length&&!ts.every(t=>t.done)){cur=i;break;}}if(cur===-1)return `<div class="subj-card" style="--clr:${hex}"><div class="subj-header"><span class="subj-emoji">${s.emoji}</span><div style="flex:1"><div style="font-size:11px;font-weight:700;color:${hex};text-transform:uppercase">${s.name}</div><div class="subj-name" style="font-size:13.5px;margin-top:3px">🎉 ¡Materia completa!</div></div></div></div>`;const ts=db.tasks.filter(t=>t.subjId===s.id&&t.topicIdx===cur);const done=ts.filter(t=>t.done).length;const pct=Math.round(done/ts.length*100);return `<div class="subj-card" style="--clr:${hex}" onclick="openDetail(${s.id})"><div class="subj-header"><span class="subj-emoji">${s.emoji}</span><div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:700;color:${hex};text-transform:uppercase">${s.name}</div><div class="subj-name" style="font-size:13.5px;margin-top:3px;line-height:1.3">Paso ${cur+1}: ${s.topics[cur]}</div><div class="subj-goal">⏱ ${s.times[cur]} · ${done}/${ts.length} · ${pct}%</div></div></div><div class="progress-wrap"><div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${hex}"></div></div></div></div>`;}).join('');}
+
+function renderEvaluador(){const el=document.getElementById('evaluador-body');if(quiz){renderQuiz();return;}const areas=['cal','eco','his','red'];const allKeys=[];areas.forEach(a=>QUIZZES[a].forEach((_,i)=>allKeys.push(a+'-'+i)));const doneCount=allKeys.filter(k=>db.scores[k]).length;const vals=Object.values(db.scores);const avg=vals.length?Math.round(vals.reduce((a,s)=>a+s.pct,0)/vals.length):null;el.innerHTML=`<div class="stats-row"><div class="stat-card" style="--accent:var(--purple)"><div class="stat-num" style="color:var(--purple)">${doneCount}/${allKeys.length}</div><div class="stat-lbl">evaluados</div></div><div class="stat-card" style="--accent:var(--mauve)"><div class="stat-num" style="color:var(--mauve)">${avg!==null?avg+'%':'—'}</div><div class="stat-lbl">promedio</div></div><div class="stat-card" style="--accent:var(--berry)"><div class="stat-num" style="color:var(--berry);font-size:15px;padding:4px 0">${avg===null?'—':avg>=80?'Avanzado':avg>=60?'Medio':'Básico'}</div><div class="stat-lbl">nivel</div></div></div>${areas.map(area=>{const s=db.subjects.find(x=>x.key===area);const hex=COLORHEX[area];return `<p class="section-title"><span>${s.emoji}</span>${s.name}</p><div class="card">${QUIZZES[area].map((qz,i)=>{const key=area+'-'+i;const sc=db.scores[key];return `<div class="task-item"><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600">${qz.topic}</div>${sc?`<div class="progress-track" style="margin-top:6px"><div class="progress-fill" style="width:${sc.pct}%;background:${hex}"></div></div><div style="font-size:11px;color:var(--text-s);margin-top:4px">${sc.correct}/${sc.total} · ${sc.pct}%</div>`:`<div style="font-size:11px;color:var(--text-s);margin-top:2px">Sin evaluar</div>`}</div><button class="btn btn-sm ${sc?'':'btn-primary'}" onclick="startQuiz('${area}',${i})">${sc?'Repetir':'Evaluar'}</button></div>`;}).join('')}</div>`;}).join('')}`;}
+function startQuiz(area,i){quiz={area,i,topic:QUIZZES[area][i].topic,qs:QUIZZES[area][i].qs,idx:0,sel:null,confirmed:false,correct:0};renderQuiz();}
+function renderQuiz(){const el=document.getElementById('evaluador-body');if(quiz.done){const pct=Math.round(quiz.correct/quiz.qs.length*100);const icon=pct>=80?'🏅':pct>=60?'⭐':'🔁';const msg=pct>=80?'¡Excelente dominio!':pct>=60?'Buen avance, sigue practicando.':'Repasa este tema antes de seguir.';const color=pct>=80?'var(--purple)':pct>=60?'var(--mauve)':'var(--berry)';el.innerHTML=`<div class="card"><div class="quiz-result"><div style="font-size:44px;margin-bottom:6px">${icon}</div><div class="quiz-score" style="color:${color}">${pct}%</div><div style="font-size:13px;color:var(--text-s);margin-top:4px">${quiz.correct} de ${quiz.qs.length} correctas</div><div style="font-size:14px;margin-top:8px">${msg}</div></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-block" onclick="startQuiz('${quiz.area}',${quiz.i})">↺ Repetir</button><button class="btn btn-primary btn-block" onclick="quiz=null;renderEvaluador()">Todos los temas</button></div></div>`;return;}const q=quiz.qs[quiz.idx];const pct=Math.round(quiz.idx/quiz.qs.length*100);const hex=COLORHEX[quiz.area];el.innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><button class="btn btn-sm" onclick="quiz=null;renderEvaluador()">← Volver</button><span class="tag tag-${quiz.area}">${quiz.topic}</span><span style="margin-left:auto;font-size:13px;color:var(--text-s)">${quiz.idx+1}/${quiz.qs.length}</span></div><div class="progress-track" style="margin-bottom:14px"><div class="progress-fill" style="width:${pct}%;background:${hex}"></div></div><div class="q-text">${q.q}</div>${q.o.map((opt,i)=>{let cls='opt';if(quiz.confirmed){if(i===q.a)cls+=' correct';else if(i===quiz.sel&&i!==q.a)cls+=' wrong';}else if(quiz.sel===i)cls+=' selected';return `<div class="${cls}" onclick="selOpt(${i})"><div class="opt-letter">${quiz.confirmed&&i===q.a?'✓':String.fromCharCode(65+i)}</div>${opt}</div>`;}).join('')}${quiz.confirmed?`<div class="hint-box">💡 ${q.h}</div>`:''}${!quiz.confirmed?`<button class="btn btn-primary btn-block" onclick="confirmOpt()" ${quiz.sel===null?'disabled':''}>Confirmar</button>`:`<button class="btn btn-primary btn-block" onclick="nextQ()">${quiz.idx+1<quiz.qs.length?'Siguiente →':'Ver resultado →'}</button>`}`;}
+function selOpt(i){if(quiz.confirmed)return;quiz.sel=i;renderQuiz();}
+function confirmOpt(){if(quiz.sel===null)return;quiz.confirmed=true;if(quiz.sel===quiz.qs[quiz.idx].a)quiz.correct++;renderQuiz();}
+function nextQ(){if(quiz.idx+1<quiz.qs.length){quiz.idx++;quiz.sel=null;quiz.confirmed=false;renderQuiz();}else{const pct=Math.round(quiz.correct/quiz.qs.length*100);db.scores[quiz.area+'-'+quiz.i]={correct:quiz.correct,total:quiz.qs.length,pct};saveDB();checkAchievements();quiz.done=true;renderQuiz();showToast(`📝 ${quiz.topic}: ${pct}%`);}}
+
+function checkAchievements(){let news=[];ACHIEVEMENTS.forEach(a=>{if(!db.unlocked.includes(a.id)&&a.check(db)){db.unlocked.push(a.id);news.push(a);}});if(news.length){saveDB();news.forEach((a,i)=>setTimeout(()=>showToast(`${a.icon} ¡${a.name} desbloqueada!`),i*1800));}}
+function renderAchievements(){document.getElementById('achievements-grid').innerHTML=ACHIEVEMENTS.map(a=>{const u=db.unlocked.includes(a.id);return `<div class="achievement ${u?'unlocked':'locked'}"><div class="ach-icon">${a.icon}</div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>`;}).join('');}
+function renderProgress(){const total=db.tasks.length,done=db.tasks.filter(t=>t.done).length;const pct=total?Math.round(done/total*100):0;const vals=Object.values(db.scores);const avg=vals.length?Math.round(vals.reduce((a,s)=>a+s.pct,0)/vals.length):0;const streak=getStreak(db);document.getElementById('stats-grid').innerHTML=`<div class="stat-card" style="--accent:var(--purple)"><div class="stat-num" style="color:var(--purple)">${pct}%</div><div class="stat-lbl">avance</div></div><div class="stat-card" style="--accent:var(--mauve)"><div class="stat-num" style="color:var(--mauve)">${avg||'—'}</div><div class="stat-lbl">nota eval</div></div><div class="stat-card" style="--accent:var(--berry)"><div class="stat-num" style="color:var(--berry)">${streak}</div><div class="stat-lbl">🔥 racha</div></div>`;document.getElementById('progress-list').innerHTML=db.subjects.map(s=>{const hex=COLORHEX[s.color];const ts=db.tasks.filter(t=>t.subjId===s.id);const d=ts.filter(t=>t.done).length;const p=ts.length?Math.round(d/ts.length*100):0;return `<div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:8px;align-items:center"><span style="font-weight:600;font-size:13.5px">${s.emoji} ${s.name}</span><span style="font-size:11px;color:var(--text-m);font-weight:600">${d}/${ts.length}</span></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${hex}"></div></div></div>`;}).join('');}
+
+function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
+function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o){o.classList.remove('open');document.body.style.overflow='';}}));
+function showToast(text){const t=document.getElementById('toast');document.getElementById('toast-text').textContent=text;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),2600);}
+loadDB();
+</script>
+</body>
+</html>
