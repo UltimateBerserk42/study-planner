@@ -154,9 +154,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fab:active{transform:scale(0.92)}
 .toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bot) + 80px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--deep);color:#fff;padding:12px 18px;border-radius:24px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(59,42,90,0.3);z-index:300;display:flex;align-items:center;gap:8px;opacity:0;transition:all .35s ease;border:2px solid var(--mauve);max-width:90%;text-align:center;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-</style>
+/* DISEÑO PANTALLA DE LOGIN */
+.login-screen {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--cream); z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; text-align: center;
+}
+.login-card {
+  background: var(--white); padding: 30px 20px;
+  border-radius: var(--radius); box-shadow: var(--shadow-md);
+  max-width: 400px; width: 100%; border: 1px solid var(--border);
+}
+.login-card h2 { color: var(--plum); margin-bottom: 10px; font-size: 20px; font-weight: 600; }
+.login-card p { color: var(--text-m); margin-bottom: 20px; font-size: 14px; }
+</style> 
 </head>
 <body>
+  <div id="login-screen" class="login-screen">
+  <div class="login-card">
+    <h2>Bienvenido a tu Planificador 🪻</h2>
+    <p>Inicia sesión con tu cuenta de Google para guardar tu progreso en la nube.</p>
+    <button class="btn btn-primary" onclick="loginWithGoogle()">Iniciar sesión con Google</button>
+  </div>
+</div>
 <div class="app">
   <div class="header">
     <h1>Mi planificador 🪻</h1>
@@ -220,6 +241,27 @@ const firebaseConfig = {
   firebase.initializeApp(firebaseConfig);
 const firestore = firebase.firestore();
 const auth = firebase.auth();
+  // ── AUTENTICACIÓN CON GOOGLE ────────────────────────
+const provider = new firebase.auth.GoogleAuthProvider();
+
+function loginWithGoogle() {
+  auth.signInWithPopup(provider).catch(function(error) {
+    console.error("Error al iniciar sesión:", error);
+    alert("Hubo un error al iniciar sesión. Inténtalo de nuevo.");
+  });
+}
+
+// Esto vigila si el usuario entró o salió
+auth.onAuthStateChanged(function(user) {
+  const loginScreen = document.getElementById('login-screen');
+  if (user) {
+    // Si inició sesión, ocultamos la pantalla de login
+    loginScreen.style.display = 'none';
+  } else {
+    // Si no ha iniciado sesión, mostramos la pantalla
+    loginScreen.style.display = 'flex';
+  }
+});
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
