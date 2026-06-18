@@ -71,7 +71,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tag-cal{background:var(--purple-soft);color:var(--plum)}
 .tag-eco{background:var(--berry-soft);color:var(--berry)}
 .tag-his{background:var(--violet-soft);color:var(--violet)}
-.tag-red{background:var(--mauve-soft);color:var(--mauve)}
 .tag-rev{background:#EFEAF8;color:var(--deep-2)}
 .alert{padding:11px 14px;border-radius:var(--radius-s);font-size:13px;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px;border:1px solid}
 .alert-warn{background:var(--mauve-soft);color:var(--berry);border-color:var(--lilac)}
@@ -154,24 +153,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fab:active{transform:scale(0.92)}
 .toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bot) + 80px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--deep);color:#fff;padding:12px 18px;border-radius:24px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(59,42,90,0.3);z-index:300;display:flex;align-items:center;gap:8px;opacity:0;transition:all .35s ease;border:2px solid var(--mauve);max-width:90%;text-align:center;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-/* DISEÑO PANTALLA DE LOGIN */
-.login-screen {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: var(--cream); z-index: 9999;
-  display: flex; align-items: center; justify-content: center;
-  padding: 20px; text-align: center;
-}
-.login-card {
-  background: var(--white); padding: 30px 20px;
-  border-radius: var(--radius); box-shadow: var(--shadow-md);
-  max-width: 400px; width: 100%; border: 1px solid var(--border);
-}
-.login-card h2 { color: var(--plum); margin-bottom: 10px; font-size: 20px; font-weight: 600; }
-.login-card p { color: var(--text-m); margin-bottom: 20px; font-size: 14px; }
-</style> 
+.login-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--cream);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;text-align:center}
+.login-card{background:var(--white);padding:30px 20px;border-radius:var(--radius);box-shadow:var(--shadow-md);max-width:400px;width:100%;border:1px solid var(--border)}
+.login-card h2{color:var(--plum);margin-bottom:10px;font-size:20px;font-weight:600}
+.login-card p{color:var(--text-m);margin-bottom:20px;font-size:14px}
+</style>
 </head>
 <body>
-  <div id="login-screen" class="login-screen">
+<div id="login-screen" class="login-screen">
   <div class="login-card">
     <h2>Bienvenido a tu Planificador 🪻</h2>
     <p>Inicia sesión con tu cuenta de Google para guardar tu progreso en la nube.</p>
@@ -241,37 +230,29 @@ const firebaseConfig = {
   appId: "1:517256690289:web:6e3b7a4140d149f1b4b9d0",
   measurementId: "G-0CHLZ8MLZ1"
 };
-  firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(firebaseConfig);
 const firestore = firebase.firestore();
 const auth = firebase.auth();
-  // ── AUTENTICACIÓN CON GOOGLE ────────────────────────
 const provider = new firebase.auth.GoogleAuthProvider();
 
-function loginWithGoogle() {
-  auth.signInWithPopup(provider).catch(function(error) {
-    console.error("Error al iniciar sesión:", error);
-    alert("Hubo un error al iniciar sesión. Inténtalo de nuevo.");
-  });
-}
+function loginWithGoogle(){auth.signInWithPopup(provider).catch(e=>{console.error(e);alert("Error al iniciar sesión.");});}
 
-// Esto vigila si el usuario entró o salió
-auth.onAuthStateChanged(function(user) {
-  const loginScreen = document.getElementById('login-screen');
-  if (user) {
-    currentUser = user; // Guardamos quién es el usuario
-    loginScreen.style.display = 'none'; // Ocultamos la pantalla
-    loadDB(); // ¡AQUÍ DESCARGAMOS EL PROGRESO DE LA NUBE!
-  } else {
-    currentUser = null;
-    loginScreen.style.display = 'flex'; // Mostramos la pantalla
-  }
+auth.onAuthStateChanged(function(user){
+  const loginScreen=document.getElementById('login-screen');
+  if(user){currentUser=user;loginScreen.style.display='none';loadDB();}
+  else{currentUser=null;loginScreen.style.display='flex';}
 });
-// ── MATERIAS (mapeadas al pensum del primer semestre) ────────────────────────
+
+const PLAN_VERSION='v2_no_redaccion';
+
+// ── MATERIAS ─────────────────────────────────────────────────────────────────
 const SUBJECTS_DEF={
   cal:{name:'Cálculo I',emoji:'📐',color:'cal',badge:'Prioridad',goal:'Dominar el álgebra y precálculo y entrar a límites y derivadas — la materia más exigente del semestre',topics:[
     {name:'Factorización',time:'60 min',tasks:[{t:'Factor común monomio y por agrupación',type:'lectura'},{t:'Trinomios y diferencia de cuadrados',type:'ejercicios'},{t:'Suma y diferencia de cubos',type:'ejercicios'},{t:'10 ejercicios mixtos',type:'ejercicios'}]},
     {name:'Fracciones algebraicas',time:'60 min',tasks:[{t:'Simplificación de fracciones',type:'lectura'},{t:'Multiplicación y división',type:'ejercicios'},{t:'Suma y resta con MCD',type:'ejercicios'},{t:'Fracciones complejas (8 ejercicios)',type:'ejercicios'}]},
     {name:'Ecuaciones e inecuaciones',time:'75 min',tasks:[{t:'Ecuaciones lineales y sistemas 2×2',type:'lectura'},{t:'Ecuaciones cuadráticas y fórmula general',type:'ejercicios'},{t:'Inecuaciones y notación de intervalos',type:'lectura'},{t:'10 ejercicios variados',type:'ejercicios'}]},
+    {name:'Sistemas de ecuaciones y aplicaciones',time:'60 min',tasks:[{t:'Métodos: sustitución, igualación, eliminación',type:'lectura'},{t:'Sistemas 3×3 básicos',type:'ejercicios'},{t:'Aplicaciones a problemas reales',type:'ejercicios'},{t:'8 ejercicios mixtos',type:'ejercicios'}]},
+    {name:'Geometría analítica básica',time:'75 min',tasks:[{t:'Plano cartesiano y distancia entre puntos',type:'lectura'},{t:'Pendiente y ecuación de la recta',type:'ejercicios'},{t:'Rectas paralelas y perpendiculares',type:'ejercicios'},{t:'6 ejercicios de aplicación',type:'ejercicios'}]},
     {name:'Funciones',time:'75 min',tasks:[{t:'Concepto, dominio y rango',type:'lectura'},{t:'Función lineal y cuadrática',type:'ejercicios'},{t:'Graficar y transformaciones',type:'ejercicios'},{t:'Composición de funciones (8 ejercicios)',type:'ejercicios'}]},
     {name:'Exponentes, radicales y logaritmos',time:'75 min',tasks:[{t:'Propiedades de la potenciación',type:'lectura'},{t:'Radicales y racionalización',type:'ejercicios'},{t:'Logaritmos: definición y propiedades',type:'lectura'},{t:'Función exponencial y logarítmica',type:'ejercicios'}]},
     {name:'Trigonometría',time:'90 min',tasks:[{t:'Razones y triángulo rectángulo',type:'lectura'},{t:'Ángulos notables 30°, 45°, 60°',type:'ejercicios'},{t:'Círculo unitario e identidades',type:'lectura'},{t:'Ecuaciones trigonométricas simples',type:'ejercicios'}]},
@@ -282,25 +263,23 @@ const SUBJECTS_DEF={
   ]},
   eco:{name:'Fundamentación Económica',emoji:'📊',color:'eco',badge:'Importante',goal:'Bases de micro y macroeconomía para tu primer curso de economía',topics:[
     {name:'Introducción a la economía',time:'45 min',tasks:[{t:'¿Qué estudia la economía?',type:'lectura'},{t:'Micro vs macro y costo de oportunidad',type:'lectura'},{t:'Escasez y frontera de posibilidades',type:'lectura'},{t:'Apuntes propios',type:'ejercicios'}]},
+    {name:'Sistemas económicos comparados',time:'45 min',tasks:[{t:'Capitalismo y economía de mercado',type:'lectura'},{t:'Socialismo y economía planificada',type:'lectura'},{t:'Economías mixtas y casos reales',type:'lectura'},{t:'Cuadro comparativo propio',type:'ejercicios'}]},
     {name:'Oferta y demanda',time:'60 min',tasks:[{t:'Ley de la demanda y su curva',type:'lectura'},{t:'Ley de la oferta y su curva',type:'lectura'},{t:'Equilibrio de mercado',type:'ejercicios'},{t:'Desplazamientos y problemas gráficos',type:'ejercicios'}]},
     {name:'Elasticidad',time:'45 min',tasks:[{t:'Elasticidad precio de la demanda',type:'lectura'},{t:'Elasticidad ingreso',type:'lectura'},{t:'Cálculos e interpretación',type:'ejercicios'},{t:'8 ejercicios',type:'ejercicios'}]},
     {name:'Consumidor y empresa',time:'60 min',tasks:[{t:'Utilidad marginal e indiferencia',type:'lectura'},{t:'Restricción presupuestaria',type:'ejercicios'},{t:'Costos y producción',type:'lectura'},{t:'Maximización de beneficios',type:'ejercicios'}]},
     {name:'Estructuras de mercado',time:'45 min',tasks:[{t:'Competencia perfecta',type:'lectura'},{t:'Monopolio y oligopolio',type:'lectura'},{t:'Ejemplos reales',type:'ejercicios'},{t:'Mapa conceptual',type:'ejercicios'}]},
+    {name:'Mercados financieros y dinero',time:'60 min',tasks:[{t:'Funciones del dinero y tipos',type:'lectura'},{t:'Bancos y sistema financiero',type:'lectura'},{t:'Tasas de interés y mercados',type:'ejercicios'},{t:'Aplicación al caso colombiano',type:'ejercicios'}]},
     {name:'Macroeconomía básica',time:'60 min',tasks:[{t:'PIB: definición y cálculo',type:'lectura'},{t:'Inflación e IPC',type:'lectura'},{t:'Desempleo y tipos',type:'lectura'},{t:'Política fiscal y monetaria',type:'ejercicios'}]}
   ]},
   his:{name:'Historia Económica',emoji:'🏛️',color:'his',badge:'Lectura',goal:'Recorrido por la evolución económica desde lo preindustrial hasta hoy',topics:[
     {name:'Economía preindustrial y mercantilismo',time:'45 min',tasks:[{t:'Economías agrarias y feudalismo',type:'lectura'},{t:'El mercantilismo y la acumulación',type:'lectura'},{t:'El comercio en la era moderna temprana',type:'lectura'},{t:'Línea de tiempo propia',type:'ejercicios'}]},
+    {name:'Fisiócratas y precursores de la economía moderna',time:'45 min',tasks:[{t:'Los fisiócratas y Quesnay',type:'lectura'},{t:'El "laissez faire" y el orden natural',type:'lectura'},{t:'Transición hacia la economía clásica',type:'lectura'},{t:'Resumen de aportes',type:'ejercicios'}]},
     {name:'La Revolución Industrial',time:'45 min',tasks:[{t:'Causas y la máquina de vapor',type:'lectura'},{t:'Cambios sociales y urbanización',type:'lectura'},{t:'Capitalismo industrial',type:'lectura'},{t:'Resumen de impactos',type:'ejercicios'}]},
     {name:'Pensamiento económico clásico',time:'60 min',tasks:[{t:'Adam Smith y la mano invisible',type:'lectura'},{t:'David Ricardo y la ventaja comparativa',type:'lectura'},{t:'Karl Marx y la crítica al capitalismo',type:'lectura'},{t:'Cuadro comparativo de autores',type:'ejercicios'}]},
     {name:'El siglo XX económico',time:'60 min',tasks:[{t:'La Gran Depresión de 1929',type:'lectura'},{t:'Keynes y el Estado de bienestar',type:'lectura'},{t:'La posguerra y Bretton Woods',type:'lectura'},{t:'Resumen de la crisis del 29',type:'ejercicios'}]},
-    {name:'Globalización y economía actual',time:'45 min',tasks:[{t:'Neoliberalismo y apertura',type:'lectura'},{t:'Crisis de 2008',type:'lectura'},{t:'Economía digital y actual',type:'lectura'},{t:'Reflexión escrita',type:'ejercicios'}]},
+    {name:'Globalización y economía actual',time:'45 min',tasks:[{t:'Neoliberalismo y apertura',type:'lectura'},{t:'Auge de las multinacionales',type:'lectura'},{t:'Economía digital',type:'lectura'},{t:'Reflexión escrita',type:'ejercicios'}]},
+    {name:'Crisis de 2008 y economía post-pandemia',time:'45 min',tasks:[{t:'Burbuja inmobiliaria y crisis de 2008',type:'lectura'},{t:'Pandemia COVID-19 y su impacto económico',type:'lectura'},{t:'Inflación y tasas de interés actuales',type:'lectura'},{t:'Análisis del caso colombiano',type:'ejercicios'}]},
     {name:'Historia económica de Colombia/LatAm',time:'60 min',tasks:[{t:'De la colonia a la independencia económica',type:'lectura'},{t:'El café y los ciclos de exportación',type:'lectura'},{t:'Industrialización y siglo XX',type:'lectura'},{t:'Síntesis del caso colombiano',type:'ejercicios'}]}
-  ]},
-  red:{name:'Redacción y P. Crítico',emoji:'✍️',color:'red',badge:'Transversal',goal:'Escribir con claridad y pensar críticamente — te sirve en todas las materias',topics:[
-    {name:'El párrafo y la estructura textual',time:'45 min',tasks:[{t:'Idea principal y secundarias',type:'lectura'},{t:'Tipos de párrafo y conectores',type:'lectura'},{t:'Coherencia y cohesión',type:'ejercicios'},{t:'Escribe 3 párrafos modelo',type:'ejercicios'}]},
-    {name:'Tipos de texto y argumentación',time:'45 min',tasks:[{t:'Texto expositivo vs argumentativo',type:'lectura'},{t:'Tesis, argumentos y evidencia',type:'lectura'},{t:'Estructura de un argumento',type:'ejercicios'},{t:'Redacta un argumento propio',type:'ejercicios'}]},
-    {name:'Pensamiento crítico y falacias',time:'45 min',tasks:[{t:'¿Qué es pensar críticamente?',type:'lectura'},{t:'Falacias lógicas comunes',type:'lectura'},{t:'Evaluar fuentes y sesgos',type:'ejercicios'},{t:'Detecta 5 falacias en ejemplos',type:'ejercicios'}]},
-    {name:'El ensayo académico',time:'60 min',tasks:[{t:'Estructura: intro, cuerpo, conclusión',type:'lectura'},{t:'Cómo plantear una tesis sólida',type:'lectura'},{t:'Citación y referencias (APA básico)',type:'lectura'},{t:'Escribe un ensayo corto (1 página)',type:'ejercicios'}]}
   ]}
 };
 
@@ -309,35 +288,35 @@ const QUIZZES={
     {topic:'Factorización',qs:[{q:'Factoriza: x² + 5x + 6',o:['(x+2)(x+3)','(x+1)(x+6)','(x+2)(x+4)','(x−2)(x−3)'],a:0,h:'Suman 5 y multiplican 6.'},{q:'Factoriza: x² − 9',o:['(x−3)²','(x+3)(x−3)','(x−9)(x+1)','(x+9)(x−1)'],a:1,h:'Diferencia de cuadrados.'},{q:'Factoriza: 2x² + 4x',o:['2(x²+2x)','2x(x+2)','x(2x+4)','2x(x+4)'],a:1,h:'Factor común 2x.'},{q:'Factoriza: x² − 5x + 6',o:['(x−2)(x−3)','(x+2)(x+3)','(x−1)(x−6)','(x−2)(x+3)'],a:0,h:'−2 y −3.'},{q:'Factoriza: 3x² − 12',o:['3(x²−4)','3(x+2)(x−2)','(3x+6)(x−2)','3x(x−4)'],a:1,h:'Saca 3 y diferencia de cuadrados.'}]},
     {topic:'Fracciones algebraicas',qs:[{q:'Simplifica: (x²−4)/(x+2)',o:['x−2','x+2','x²−2','(x−2)(x+2)'],a:0,h:'Diferencia de cuadrados arriba.'},{q:'(2x/3)·(9/x)',o:['6','2/3','6x²','18'],a:0,h:'Se cancela x; 2·9/3=6.'},{q:'1/x + 1/(x+1)',o:['2/(x²+x)','(2x+1)/(x²+x)','1/(2x+1)','2x/(x+1)'],a:1,h:'LCD = x(x+1).'},{q:'(6x²y)/(3xy²)',o:['2x/y','2y/x','2xy','6x/y'],a:0,h:'Cancela comunes.'},{q:'(x²−1)/x ÷ (x+1)/2',o:['2(x−1)/x','(x+1)/2x','2x/(x−1)','(x²−1)/2x'],a:0,h:'Recíproco y factoriza.'}]},
     {topic:'Ecuaciones e inecuaciones',qs:[{q:'2x + 6 = 14',o:['x=4','x=10','x=3','x=7'],a:0,h:'Resta 6, divide 2.'},{q:'x² − 4 = 0',o:['x=2','x=±2','x=4','x=±4'],a:1,h:'x=±√4.'},{q:'x² + 3x + 2 = 0',o:['x=1,2','x=−1,−2','x=1,−2','x=−1,2'],a:1,h:'(x+1)(x+2)=0.'},{q:'Resuelve x − 3 > 2',o:['x>5','x<5','x>−1','x>1'],a:0,h:'Suma 3 a ambos lados.'},{q:'5(x−1)=2x+7',o:['x=3','x=4','x=5','x=2'],a:1,h:'Distribuye y agrupa.'}]},
+    {topic:'Sistemas de ecuaciones y aplicaciones',qs:[{q:'Sistema: x+y=10, x−y=4. x e y son:',o:['x=7, y=3','x=6, y=4','x=5, y=5','x=8, y=2'],a:0,h:'Suma ambas: 2x=14 → x=7, y=3.'},{q:'Si 2x+3y=12 y x=3, entonces y=',o:['1','2','3','4'],a:1,h:'2(3)+3y=12 → 3y=6 → y=2.'},{q:'En el método de eliminación se busca:',o:['Sumar ecuaciones para anular variables','Multiplicar todo','Dividir todo','Invertir signos'],a:0,h:'Anular una variable.'},{q:'Un sistema con infinitas soluciones tiene:',o:['Rectas paralelas','Rectas que se cortan','Rectas coincidentes','Sin rectas'],a:2,h:'Las dos ecuaciones representan la misma recta.'},{q:'Un sistema sin solución tiene:',o:['Rectas coincidentes','Rectas paralelas','Rectas perpendiculares','Una sola recta'],a:1,h:'Paralelas nunca se cortan.'}]},
+    {topic:'Geometría analítica básica',qs:[{q:'Pendiente entre (1,2) y (4,8):',o:['1','2','3','6'],a:1,h:'m = (8−2)/(4−1) = 6/3 = 2.'},{q:'Distancia entre (0,0) y (3,4):',o:['5','7','12','25'],a:0,h:'√(3²+4²) = √25 = 5.'},{q:'Si dos rectas son perpendiculares, sus pendientes:',o:['Son iguales','Su producto es −1','Suman 0','Son cero'],a:1,h:'m₁·m₂ = −1.'},{q:'La ecuación y=3x+5 tiene pendiente:',o:['5','3','3x','x'],a:1,h:'En y=mx+b, m=3.'},{q:'Rectas paralelas tienen pendientes:',o:['Iguales','Opuestas','Recíprocas','Cero'],a:0,h:'Misma pendiente, distinto intercepto.'}]},
     {topic:'Funciones',qs:[{q:'Si f(x)=2x+3, f(4)=',o:['10','11','8','14'],a:1,h:'2(4)+3.'},{q:'Dominio de √(x−2):',o:['x≥0','x≥2','x>2','reales'],a:1,h:'x−2≥0.'},{q:'Si f(x)=x²−1, f(−3)=',o:['8','10','9','−10'],a:0,h:'9−1=8.'},{q:'f(x)=x² es:',o:['Lineal','Cuadrática','Exponencial','Constante'],a:1,h:'Variable al cuadrado.'},{q:'Pendiente de 3x−5:',o:['−5','3','5','−3'],a:1,h:'m en mx+b.'}]},
     {topic:'Exponentes, radicales y logaritmos',qs:[{q:'x³·x²=',o:['x⁵','x⁶','x','x¹'],a:0,h:'Se suman exponentes.'},{q:'log₂(8)=',o:['2','3','4','8'],a:1,h:'2³=8.'},{q:'(x²)³=',o:['x⁵','x⁶','x⁸','x⁹'],a:1,h:'Se multiplican.'},{q:'log(a·b)=',o:['log a·log b','log a+log b','log a−log b','log a/log b'],a:1,h:'Producto → suma.'},{q:'5⁰=',o:['0','5','1','indef'],a:2,h:'Todo a la 0 es 1.'}]},
     {topic:'Trigonometría',qs:[{q:'sen(θ)=',o:['ady/hip','op/hip','op/ady','hip/op'],a:1,h:'SOH.'},{q:'cos(60°)=',o:['√3/2','1/2','√2/2','1'],a:1,h:'Notable.'},{q:'tan(45°)=',o:['0','√3','1','1/2'],a:2,h:'sen/cos=1.'},{q:'Identidad fundamental:',o:['sen²+cos²=2','sen²+cos²=1','sen+cos=1','sen²−cos²=1'],a:1,h:'=1.'},{q:'sen(30°)=',o:['√3/2','√2/2','1/2','1'],a:2,h:'Notable.'}]},
     {topic:'Límites y continuidad',qs:[{q:'lím(x→2) f(x) es:',o:['f(2)','El valor al que tiende f cuando x→2','La derivada','El área'],a:1,h:'Comportamiento cerca del punto.'},{q:'Si f(x)=2x+1, lím(x→3)=',o:['7','6','8','1'],a:0,h:'Continua: f(3)=7.'},{q:'lím(x→0)(sen x)/x=',o:['0','∞','1','sen0'],a:2,h:'Límite notable=1.'},{q:'Si límites laterales difieren:',o:['Vale el mayor','Vale el menor','No existe','Promedio'],a:2,h:'Deben coincidir.'},{q:'lím(x→∞) 1/x=',o:['1','∞','−1','0'],a:3,h:'Tiende a 0.'}]},
     {topic:'La derivada: concepto',qs:[{q:'La derivada representa:',o:['El área bajo la curva','La razón de cambio / pendiente de la tangente','El valor máximo','El límite inferior'],a:1,h:'Pendiente de la recta tangente.'},{q:'La derivada se define como:',o:['Una suma','El límite del cociente incremental','Una integral','Un producto'],a:1,h:'lím cuando Δx→0 de Δy/Δx.'},{q:'Si f es constante, f′(x)=',o:['1','x','0','la constante'],a:2,h:'Una constante no cambia.'},{q:'La pendiente de la tangente en un punto es:',o:['f(x)','f′(x)','0 siempre','el área'],a:1,h:'Es justo la derivada ahí.'},{q:'Δy/Δx cuando Δx→0 es:',o:['La media','La derivada','La integral','El promedio'],a:1,h:'Definición de derivada.'}]},
-    {topic:'Reglas de derivación',qs:[{q:'d/dx(x³)=',o:['3x²','x²','3x','x³'],a:0,h:'Regla de la potencia: n·xⁿ⁻¹.'},{q:'d/dx(5)=',o:['5','0','1','5x'],a:1,h:'Derivada de constante = 0.'},{q:'d/dx(x²+3x)=',o:['2x+3','2x','x+3','2x+3x'],a:0,h:'Derivada término a término.'},{q:'d/dx(7x)=',o:['0','7','7x','x'],a:1,h:'Coeficiente por derivada de x.'},{q:'La regla de la cadena sirve para:',o:['Sumas','Funciones compuestas','Constantes','Restas'],a:1,h:'Derivar función dentro de función.'}]},
-    {topic:'Aplicaciones de la derivada',qs:[{q:'En un máximo o mínimo, f′(x)=',o:['1','0','∞','−1'],a:1,h:'La tangente es horizontal.'},{q:'Si f′(x)>0, la función:',o:['Decrece','Crece','Es constante','No existe'],a:1,h:'Pendiente positiva = sube.'},{q:'Si f′(x)<0, la función:',o:['Crece','Decrece','Es constante','Es máxima'],a:1,h:'Pendiente negativa = baja.'},{q:'Optimizar es:',o:['Graficar','Hallar máximos o mínimos','Sumar','Integrar'],a:1,h:'Encontrar el mejor valor.'},{q:'Un punto crítico se halla:',o:['f(x)=0','f′(x)=0 o no existe','x=0','y=0'],a:1,h:'Donde la derivada se anula.'}]}
+    {topic:'Reglas de derivación',qs:[{q:'d/dx(x³)=',o:['3x²','x²','3x','x³'],a:0,h:'n·xⁿ⁻¹.'},{q:'d/dx(5)=',o:['5','0','1','5x'],a:1,h:'Constante = 0.'},{q:'d/dx(x²+3x)=',o:['2x+3','2x','x+3','2x+3x'],a:0,h:'Término a término.'},{q:'d/dx(7x)=',o:['0','7','7x','x'],a:1,h:'Coef. por derivada.'},{q:'La regla de la cadena sirve para:',o:['Sumas','Funciones compuestas','Constantes','Restas'],a:1,h:'Función dentro de función.'}]},
+    {topic:'Aplicaciones de la derivada',qs:[{q:'En un máximo o mínimo, f′(x)=',o:['1','0','∞','−1'],a:1,h:'Tangente horizontal.'},{q:'Si f′(x)>0, la función:',o:['Decrece','Crece','Constante','No existe'],a:1,h:'Pendiente positiva.'},{q:'Si f′(x)<0, la función:',o:['Crece','Decrece','Constante','Es máxima'],a:1,h:'Pendiente negativa.'},{q:'Optimizar es:',o:['Graficar','Hallar máximos o mínimos','Sumar','Integrar'],a:1,h:'Mejor valor.'},{q:'Punto crítico:',o:['f(x)=0','f′(x)=0 o no existe','x=0','y=0'],a:1,h:'Derivada se anula.'}]}
   ],
   eco:[
     {topic:'Introducción a la economía',qs:[{q:'La economía estudia:',o:['Solo el dinero','La asignación de recursos escasos','La contabilidad','Los impuestos'],a:1,h:'Recursos escasos.'},{q:'La microeconomía estudia:',o:['El país','Individuos y empresas','La inflación','El comercio mundial'],a:1,h:'Unidades individuales.'},{q:'Costo de oportunidad es:',o:['El precio','Lo que renuncias al elegir','Un impuesto','La ganancia'],a:1,h:'Alternativa sacrificada.'},{q:'La macroeconomía estudia:',o:['Una empresa','Agregados como PIB','Un consumidor','Un mercado'],a:1,h:'La economía en conjunto.'},{q:'Un bien escaso:',o:['Es gratis','Tiene oferta limitada','Nadie lo quiere','Es ilegal'],a:1,h:'Recurso limitado.'}]},
+    {topic:'Sistemas económicos comparados',qs:[{q:'El capitalismo se basa en:',o:['Estado dueño de todo','Propiedad privada y libre mercado','Trueque','Planificación central'],a:1,h:'Mercado libre.'},{q:'En el socialismo:',o:['Mercado libre total','Propiedad colectiva de medios de producción','Sin Estado','Sin trabajo'],a:1,h:'Medios colectivos.'},{q:'Una economía mixta combina:',o:['Solo mercado','Solo Estado','Mercado y Estado','Trueque'],a:2,h:'Lo mejor de ambos.'},{q:'Colombia tiene economía:',o:['Pura de mercado','Pura socialista','Mixta','Cerrada'],a:2,h:'Mezcla mercado con regulación estatal.'},{q:'La planificación central significa:',o:['Mercado decide','Estado decide qué producir','Empresas deciden','Consumidores deciden'],a:1,h:'Estado planifica.'}]},
     {topic:'Oferta y demanda',qs:[{q:'Si el precio sube, la Qd:',o:['Sube','Baja','Igual','Depende'],a:1,h:'Ley de la demanda.'},{q:'Más ingreso desplaza la demanda:',o:['Izquierda','Derecha','No la mueve','Vertical'],a:1,h:'Más capacidad de compra.'},{q:'El equilibrio:',o:['Oferta máxima','Demanda mínima','Qof=Qd','Precio cero'],a:2,h:'El mercado se vacía.'},{q:'Precio bajo el equilibrio:',o:['Excedente','Escasez','Equilibrio','Deflación'],a:1,h:'Escasez.'},{q:'Desplaza oferta a la derecha:',o:['Más impuestos','Mejor tecnología','Sube precio','Menos subsidios'],a:1,h:'Producir más igual costo.'}]},
     {topic:'Elasticidad',qs:[{q:'La elasticidad precio mide:',o:['Oferta ante precio','Cambio de Qd ante precio','El ingreso','Pendiente oferta'],a:1,h:'Sensibilidad al precio.'},{q:'Si |Ep|>1:',o:['Inelástica','Elástica','Perf. inelástica','Unitaria'],a:1,h:'Muy sensible.'},{q:'Primera necesidad → demanda:',o:['Elástica','Inelástica','Perf. elástica','Unitaria'],a:1,h:'Se necesita igual.'},{q:'P +10%, Qd −5%. Ep=',o:['2','0.5','0.1','5'],a:1,h:'5/10.'},{q:'Elasticidad ingreso + = bien:',o:['Inferior','Normal','Complementario','Sustituto'],a:1,h:'Ingreso↑→consumo↑.'}]},
     {topic:'Consumidor y empresa',qs:[{q:'Utilidad marginal:',o:['Total','Satisfacción de 1 unidad extra','Costo','Precio'],a:1,h:'Una unidad adicional.'},{q:'La UM tiende a:',o:['Subir siempre','Decrecer','Constante','Cero'],a:1,h:'Decreciente.'},{q:'Costos fijos:',o:['Cambian con producción','No cambian','Suben siempre','Cero'],a:1,h:'Ej. renta.'},{q:'Costo marginal:',o:['Total','De 1 unidad más','Fijo','Ingreso'],a:1,h:'Siguiente unidad.'},{q:'Maximiza beneficio si:',o:['I=CF','IMg=CMg','C=0','P=0'],a:1,h:'Regla IMg=CMg.'}]},
     {topic:'Estructuras de mercado',qs:[{q:'Competencia perfecta:',o:['Una empresa','Muchos agentes','Dos empresas','Un comprador'],a:1,h:'Producto homogéneo.'},{q:'Monopolio:',o:['Muchas','Una sola empresa','Dos','Ninguna'],a:1,h:'Un oferente.'},{q:'En comp. perfecta la empresa es:',o:['Fijadora','Tomadora de precios','Monopolista','Reguladora'],a:1,h:'Acepta el precio.'},{q:'Oligopolio:',o:['Una','Pocas dominantes','Infinitas','Ninguna'],a:1,h:'Pocos grandes.'},{q:'El monopolista:',o:['Baja precios','Cobra más, produce menos','Produce infinito','Sin poder'],a:1,h:'Poder de mercado.'}]},
+    {topic:'Mercados financieros y dinero',qs:[{q:'El dinero sirve principalmente como:',o:['Adorno','Medio de cambio, unidad de cuenta y depósito de valor','Solo ahorro','Solo crédito'],a:1,h:'Tres funciones clásicas.'},{q:'El banco central de Colombia es:',o:['Bancolombia','Banco de la República','Davivienda','BBVA'],a:1,h:'Emite moneda.'},{q:'Una tasa de interés alta tiende a:',o:['Incentivar consumo','Frenar consumo y crédito','Aumentar inflación','No cambia nada'],a:1,h:'Encarece pedir prestado.'},{q:'La bolsa de valores es:',o:['Un mercado de bienes','Un mercado de acciones y bonos','Un banco','Un seguro'],a:1,h:'Activos financieros.'},{q:'Una acción representa:',o:['Un préstamo','Una parte de propiedad de una empresa','Un impuesto','Un seguro'],a:1,h:'Propiedad parcial.'}]},
     {topic:'Macroeconomía básica',qs:[{q:'El PIB mide:',o:['El ahorro','Bienes y servicios finales producidos','Ingreso de hogares','Exportaciones'],a:1,h:'Producción total.'},{q:'La inflación es:',o:['Caída del PIB','Aumento sostenido de precios','Menos desempleo','Más exportación'],a:1,h:'Suben los precios.'},{q:'Política fiscal expansiva:',o:['Menos gasto','Más impuestos','Más gasto o menos impuestos','Sube tasas'],a:2,h:'Inyecta dinero.'},{q:'Banco central busca:',o:['Empleo directo','Controlar inflación','Recaudar','Financiar gasto'],a:1,h:'Política monetaria.'},{q:'Desempleo friccional:',o:['Recesión','Entre trabajos','Industrias muertas','Salarios altos'],a:1,h:'Temporal y normal.'}]}
   ],
   his:[
-    {topic:'Economía preindustrial y mercantilismo',qs:[{q:'El mercantilismo buscaba:',o:['Libre comercio total','Acumular metales preciosos','Abolir el comercio','Igualdad de ingresos'],a:1,h:'Riqueza = oro y plata acumulados.'},{q:'La economía feudal se basaba en:',o:['La industria','La agricultura y la tierra','Los servicios','La banca'],a:1,h:'Tierra y trabajo agrario.'},{q:'El mercantilismo favorecía:',o:['Importar mucho','Exportar más que importar','No comerciar','Solo consumo interno'],a:1,h:'Balanza comercial positiva.'},{q:'Periodo del mercantilismo:',o:['Siglos XVI–XVIII','Siglo XX','Edad Antigua','Hoy'],a:0,h:'Era moderna temprana.'}]},
-    {topic:'La Revolución Industrial',qs:[{q:'Invento clave de la Rev. Industrial:',o:['El internet','La máquina de vapor','El automóvil','El teléfono'],a:1,h:'Watt, siglo XVIII.'},{q:'Empezó en:',o:['Francia','Inglaterra','Alemania','EE.UU.'],a:1,h:'Gran Bretaña, ~1760.'},{q:'Un efecto social fue:',o:['Despoblación','Urbanización masiva','Fin del comercio','Menos fábricas'],a:1,h:'La gente migró a las ciudades.'},{q:'Dio origen al:',o:['Feudalismo','Capitalismo industrial','Mercantilismo','Trueque'],a:1,h:'Fábricas y trabajo asalariado.'}]},
+    {topic:'Economía preindustrial y mercantilismo',qs:[{q:'El mercantilismo buscaba:',o:['Libre comercio total','Acumular metales preciosos','Abolir el comercio','Igualdad de ingresos'],a:1,h:'Riqueza = oro y plata.'},{q:'La economía feudal se basaba en:',o:['La industria','La agricultura y la tierra','Los servicios','La banca'],a:1,h:'Tierra y trabajo agrario.'},{q:'El mercantilismo favorecía:',o:['Importar mucho','Exportar más que importar','No comerciar','Solo consumo interno'],a:1,h:'Balanza comercial positiva.'},{q:'Periodo del mercantilismo:',o:['Siglos XVI–XVIII','Siglo XX','Edad Antigua','Hoy'],a:0,h:'Era moderna temprana.'}]},
+    {topic:'Fisiócratas y precursores',qs:[{q:'François Quesnay fue líder de los:',o:['Mercantilistas','Fisiócratas','Marxistas','Keynesianos'],a:1,h:'Padre de la fisiocracia.'},{q:'Los fisiócratas creían que la riqueza viene de:',o:['El comercio','La agricultura y la tierra','La industria','La banca'],a:1,h:'La tierra como fuente.'},{q:'"Laissez faire" significa:',o:['Trabajar duro','Dejar hacer, no intervenir','Planificar todo','Cobrar impuestos'],a:1,h:'No intervencionismo.'},{q:'Los fisiócratas fueron precursores de:',o:['Marx','Adam Smith y los clásicos','Keynes','Friedman'],a:1,h:'Influyeron en la economía clásica.'}]},
+    {topic:'La Revolución Industrial',qs:[{q:'Invento clave de la Rev. Industrial:',o:['El internet','La máquina de vapor','El automóvil','El teléfono'],a:1,h:'Watt, siglo XVIII.'},{q:'Empezó en:',o:['Francia','Inglaterra','Alemania','EE.UU.'],a:1,h:'Gran Bretaña, ~1760.'},{q:'Un efecto social fue:',o:['Despoblación','Urbanización masiva','Fin del comercio','Menos fábricas'],a:1,h:'Migración a ciudades.'},{q:'Dio origen al:',o:['Feudalismo','Capitalismo industrial','Mercantilismo','Trueque'],a:1,h:'Fábricas y asalariados.'}]},
     {topic:'Pensamiento económico clásico',qs:[{q:'"La mano invisible" es de:',o:['Marx','Adam Smith','Keynes','Ricardo'],a:1,h:'La riqueza de las naciones, 1776.'},{q:'La ventaja comparativa es de:',o:['Smith','David Ricardo','Marx','Keynes'],a:1,h:'Base del comercio internacional.'},{q:'Karl Marx criticó:',o:['El feudalismo','El capitalismo','El socialismo','El mercantilismo'],a:1,h:'El Capital, plusvalía.'},{q:'Adam Smith defendía:',o:['El control estatal total','El libre mercado','La planificación central','El trueque'],a:1,h:'Mercados libres.'}]},
-    {topic:'El siglo XX económico',qs:[{q:'La Gran Depresión empezó en:',o:['1919','1929','1945','1973'],a:1,h:'Crac de Wall Street, 1929.'},{q:'Keynes proponía:',o:['No intervenir','Intervención del Estado en crisis','Abolir el dinero','Solo ahorrar'],a:1,h:'Estímulo de la demanda.'},{q:'Bretton Woods (1944) creó:',o:['La OMC','El FMI y el Banco Mundial','La ONU','La UE'],a:1,h:'Orden financiero de posguerra.'},{q:'El Estado de bienestar busca:',o:['Eliminar impuestos','Protección social','Cerrar fronteras','Privatizar todo'],a:1,h:'Salud, educación, pensiones.'}]},
-    {topic:'Globalización y economía actual',qs:[{q:'El neoliberalismo promueve:',o:['Más Estado','Libre mercado y apertura','Autarquía','Planificación central'],a:1,h:'Desregulación y apertura.'},{q:'La crisis financiera global fue en:',o:['1998','2008','2015','2020'],a:1,h:'Burbuja hipotecaria de EE.UU.'},{q:'La economía digital se basa en:',o:['Agricultura','Datos y tecnología','Minería','Trueque'],a:1,h:'Plataformas e información.'},{q:'Globalización significa:',o:['Cerrar mercados','Integración mundial de economías','Menos comercio','Solo comercio local'],a:1,h:'Interconexión global.'}]},
-    {topic:'Historia económica de Colombia/LatAm',qs:[{q:'El principal producto de exportación de Colombia en el s.XX fue:',o:['Petróleo','Café','Banano','Carbón'],a:1,h:'La economía cafetera.'},{q:'América Latina dependió de:',o:['La industria pesada','La exportación de materias primas','La tecnología','La banca'],a:1,h:'Modelo primario-exportador.'},{q:'La industrialización por sustitución de importaciones buscaba:',o:['Importar más','Producir internamente lo que se importaba','Cerrar fábricas','Exportar todo'],a:1,h:'ISI, mediados del s.XX.'},{q:'La economía colonial se basó en:',o:['La industria','La extracción de recursos','Los servicios','El turismo'],a:1,h:'Oro, plata y monocultivos.'}]}
-  ],
-  red:[
-    {topic:'El párrafo y la estructura textual',qs:[{q:'La idea principal de un párrafo:',o:['Es siempre la última','Expresa el tema central','Es un ejemplo','No existe'],a:1,h:'Las demás la apoyan.'},{q:'Los conectores sirven para:',o:['Adornar','Enlazar ideas con coherencia','Rellenar','Confundir'],a:1,h:'Dan fluidez y lógica.'},{q:'La cohesión es:',o:['El tamaño del texto','La conexión entre las partes','El número de párrafos','El título'],a:1,h:'Enlace gramatical entre ideas.'},{q:'Un buen párrafo trata:',o:['Muchas ideas sueltas','Una idea central','Solo datos','Solo preguntas'],a:1,h:'Unidad temática.'}]},
-    {topic:'Tipos de texto y argumentación',qs:[{q:'Un texto argumentativo busca:',o:['Solo informar','Convencer con razones','Narrar','Describir'],a:1,h:'Defiende una postura.'},{q:'La tesis es:',o:['Un ejemplo','La idea que se defiende','Una cita','La conclusión'],a:1,h:'La postura central.'},{q:'Un argumento necesita:',o:['Solo opinión','Razones y evidencia','Adjetivos','Preguntas'],a:1,h:'Sustento que respalde la tesis.'},{q:'Texto expositivo:',o:['Defiende una postura','Explica o informa','Persuade','Ordena'],a:1,h:'Presenta información objetiva.'}]},
-    {topic:'Pensamiento crítico y falacias',qs:[{q:'Pensar críticamente es:',o:['Criticar todo','Evaluar argumentos con razón','Estar en desacuerdo','Memorizar'],a:1,h:'Analizar con criterio.'},{q:'Atacar a la persona y no su idea es la falacia:',o:['Ad hominem','Hombre de paja','Falsa causa','Autoridad'],a:0,h:'Ad hominem.'},{q:'Una fuente confiable suele ser:',o:['Anónima','Verificable y experta','Viral','Sin fecha'],a:1,h:'Autoría y respaldo.'},{q:'Una falacia es:',o:['Un argumento válido','Un razonamiento engañoso','Una cita','Un dato'],a:1,h:'Parece válido pero no lo es.'}]},
-    {topic:'El ensayo académico',qs:[{q:'Un ensayo se estructura en:',o:['Solo conclusión','Introducción, cuerpo y conclusión','Solo título','Preguntas'],a:1,h:'Tres partes clásicas.'},{q:'La introducción debe:',o:['Resolver todo','Presentar el tema y la tesis','Citar todo','Concluir'],a:1,h:'Plantea el tema y la postura.'},{q:'Citar fuentes sirve para:',o:['Alargar','Dar respaldo y evitar plagio','Adornar','Confundir'],a:1,h:'Crédito y rigor.'},{q:'La conclusión:',o:['Agrega temas nuevos','Cierra y sintetiza','Es opcional','Repite la intro igual'],a:1,h:'Recoge lo argumentado.'}]}
+    {topic:'El siglo XX económico',qs:[{q:'La Gran Depresión empezó en:',o:['1919','1929','1945','1973'],a:1,h:'Crac de Wall Street.'},{q:'Keynes proponía:',o:['No intervenir','Intervención del Estado en crisis','Abolir el dinero','Solo ahorrar'],a:1,h:'Estímulo de la demanda.'},{q:'Bretton Woods (1944) creó:',o:['La OMC','El FMI y el Banco Mundial','La ONU','La UE'],a:1,h:'Orden financiero de posguerra.'},{q:'El Estado de bienestar busca:',o:['Eliminar impuestos','Protección social','Cerrar fronteras','Privatizar todo'],a:1,h:'Salud, educación, pensiones.'}]},
+    {topic:'Globalización y economía actual',qs:[{q:'El neoliberalismo promueve:',o:['Más Estado','Libre mercado y apertura','Autarquía','Planificación central'],a:1,h:'Desregulación y apertura.'},{q:'Multinacionales son:',o:['Empresas en un país','Empresas que operan en varios países','ONGs','Bancos centrales'],a:1,h:'Operan globalmente.'},{q:'La economía digital se basa en:',o:['Agricultura','Datos y tecnología','Minería','Trueque'],a:1,h:'Plataformas e información.'},{q:'Globalización significa:',o:['Cerrar mercados','Integración mundial de economías','Menos comercio','Solo comercio local'],a:1,h:'Interconexión global.'}]},
+    {topic:'Crisis de 2008 y post-pandemia',qs:[{q:'La crisis financiera global fue en:',o:['1998','2008','2015','2020'],a:1,h:'Burbuja hipotecaria EE.UU.'},{q:'La pandemia COVID-19 causó:',o:['Crecimiento económico','Recesión global','Sin efectos','Solo problemas locales'],a:1,h:'Caída global en 2020.'},{q:'Para combatir la inflación reciente, los bancos centrales:',o:['Bajaron tasas','Subieron tasas de interés','No hicieron nada','Cerraron bancos'],a:1,h:'Encarecer crédito enfría precios.'},{q:'En Colombia, la inflación reciente fue principalmente por:',o:['Solo factores internos','Cadenas globales, energía y alimentos','Solo dólar','Solo impuestos'],a:1,h:'Múltiples causas globales.'}]},
+    {topic:'Historia económica de Colombia/LatAm',qs:[{q:'El principal producto de exportación de Colombia en el s.XX fue:',o:['Petróleo','Café','Banano','Carbón'],a:1,h:'La economía cafetera.'},{q:'América Latina dependió de:',o:['La industria pesada','La exportación de materias primas','La tecnología','La banca'],a:1,h:'Modelo primario-exportador.'},{q:'La ISI buscaba:',o:['Importar más','Producir internamente lo que se importaba','Cerrar fábricas','Exportar todo'],a:1,h:'Industrialización por sustitución.'},{q:'La economía colonial se basó en:',o:['La industria','La extracción de recursos','Los servicios','El turismo'],a:1,h:'Oro, plata y monocultivos.'}]}
   ]
 };
 
@@ -353,100 +332,146 @@ const ACHIEVEMENTS=[
   {id:'all_cal',icon:'📐',name:'Cálculo full',desc:'Evalúa todo cálculo',check:db=>QUIZZES.cal.every((_,i)=>db.scores['cal-'+i])},
   {id:'all_eco',icon:'📊',name:'Economista',desc:'Evalúa toda eco',check:db=>QUIZZES.eco.every((_,i)=>db.scores['eco-'+i])},
   {id:'avg_80',icon:'⭐',name:'Promedio 80+',desc:'Excelencia',check:db=>{const v=Object.values(db.scores);if(v.length<4)return false;return v.reduce((a,s)=>a+s.pct,0)/v.length>=80;}},
-  {id:'calculo_ready',icon:'🎓',name:'Lista p/ derivar',desc:'Pasa derivadas',check:db=>db.scores['cal-8']&&db.scores['cal-8'].pct>=60}
+  {id:'calculo_ready',icon:'🎓',name:'Lista p/ derivar',desc:'Pasa derivadas',check:db=>db.scores['cal-9']&&db.scores['cal-9'].pct>=60}
 ];
 
 function getStreak(db){const dates=new Set(db.tasks.filter(t=>t.done&&t.completedDate).map(t=>t.completedDate));if(!dates.size)return 0;let s=0;const d=new Date();while(true){const k=d.toISOString().slice(0,10);if(dates.has(k)){s++;d.setDate(d.getDate()-1);}else break;}return s;}
 
-const COLORHEX={cal:'#7C5CBF',eco:'#9B4A8A',his:'#6B4FA0',red:'#B07AC9',rev:'#B07AC9'};
+const COLORHEX={cal:'#7C5CBF',eco:'#9B4A8A',his:'#6B4FA0',rev:'#B07AC9'};
 
-let db={subjects:[],tasks:[],scores:{},unlocked:[]};
+let db={subjects:[],tasks:[],scores:{},unlocked:[],planVersion:null};
 let currentDetailId=null,calDate=new Date(2026,5,1),selectedCalDate=null,currentTab='hoy',quiz=null;
+let currentUser=null;
 
-let currentUser = null;
-
-function loadDB() {
-  if (!currentUser) return;
-  // Pedimos los datos a la nube
-  firestore.collection("usuarios").doc(currentUser.uid).get()
-  .then(function(doc) {
-    if (doc.exists) {
-      // Si el usuario ya tiene progreso, lo descargamos
-      db = JSON.parse(doc.data().progreso);
-      if(!db.scores) db.scores={};
-      if(!db.unlocked) db.unlocked=[];
+function loadDB(){
+  if(!currentUser)return;
+  firestore.collection("usuarios").doc(currentUser.uid).get().then(function(doc){
+    if(doc.exists){
+      const cloudDB=JSON.parse(doc.data().progreso);
+      if(!cloudDB.scores)cloudDB.scores={};
+      if(!cloudDB.unlocked)cloudDB.unlocked=[];
+      // Migración: si la versión del plan es vieja, regeneramos preservando done/scores
+      if(cloudDB.planVersion!==PLAN_VERSION){
+        const oldDone=new Map();
+        (cloudDB.tasks||[]).filter(t=>t.done).forEach(t=>{
+          const key=`${t.subjKey}__${t.session||''}__${t.text}`;
+          oldDone.set(key,t.completedDate||today());
+        });
+        const oldScores=cloudDB.scores||{};
+        const oldUnlocked=cloudDB.unlocked||[];
+        db={subjects:[],tasks:[],scores:oldScores,unlocked:oldUnlocked,planVersion:PLAN_VERSION};
+        seedInternal();
+        // Reaplicar tareas hechas
+        db.tasks.forEach(t=>{
+          const key=`${t.subjKey}__${t.session||''}__${t.text}`;
+          if(oldDone.has(key)){t.done=true;t.completedDate=oldDone.get(key);}
+        });
+        saveDB();
+        showToast('✨ Plan actualizado, progreso preservado');
+      } else {
+        db=cloudDB;
+      }
       renderAll();
     } else {
-      // Si es un usuario nuevo, generamos las materias
-      seed(); 
+      seed();
     }
-  }).catch(function(error) {
-    console.error("Error al descargar progreso:", error);
-  });
+  }).catch(function(error){console.error("Error al descargar progreso:",error);});
 }
 
-function saveDB() {
-  if (!currentUser) return;
-  // Subimos los datos a la nube
-  firestore.collection("usuarios").doc(currentUser.uid).set({
-    progreso: JSON.stringify(db)
-  }).catch(function(error) {
-    console.error("Error al guardar progreso:", error);
+function saveDB(){
+  if(!currentUser)return;
+  db.planVersion=PLAN_VERSION;
+  firestore.collection("usuarios").doc(currentUser.uid).set({progreso:JSON.stringify(db)}).catch(function(error){console.error("Error al guardar:",error);});
+}
+
+function seedInternal(){
+  let sid=1;const byKey={};
+  for(const[key,c] of Object.entries(SUBJECTS_DEF)){
+    const subj={id:sid++,key,name:c.name,color:c.color,emoji:c.emoji,badge:c.badge,goal:c.goal,topics:c.topics.map(t=>t.name),times:c.topics.map(t=>t.time)};
+    db.subjects.push(subj);byKey[key]=subj;
+  }
+  // Días lunes-sábado del 1 jun al 18 jul 2026
+  const dates=[];
+  for(let d=new Date(2026,5,1);d<=new Date(2026,6,18);d.setDate(d.getDate()+1)){
+    if(d.getDay()!==0)dates.push(d.toISOString().slice(0,10));
+  }
+  const T=(k,i)=>({t:'topic',k,i});
+  const R=(title,time,tasks)=>({t:'rev',title,time,tasks});
+
+  // 42 días disponibles. 12 cal + 8 eco + 8 his = 28 temas. Quedan 14 días para repaso/simulacros.
+  const schedule=[
+    // Semana 1 (Jun 1–6)
+    T('cal',0),  // Lun 1 Factorización
+    T('eco',0),  // Mar 2 Intro economía
+    T('cal',1),  // Mié 3 Fracciones algebraicas
+    T('his',0),  // Jue 4 Preindustrial y mercantilismo
+    T('eco',1),  // Vie 5 Sistemas económicos
+    R('Repaso semana 1','45 min',['Rehacer 6 ejercicios de factorización sin apuntes','5 fracciones algebraicas mezcladas','Resumir qué es la economía y sistemas económicos','Evaluador: Factorización + Intro economía']),  // Sáb 6
+    // Semana 2 (Jun 8–13)
+    T('cal',2),  // Lun 8 Ecuaciones e inecuaciones
+    T('his',1),  // Mar 9 Fisiócratas
+    T('cal',3),  // Mié 10 Sistemas de ecuaciones
+    T('eco',2),  // Jue 11 Oferta y demanda
+    R('Repaso · Cálculo (ecuaciones y sistemas)','45 min',['6 ecuaciones e inecuaciones','3 sistemas 2×2 sin ver apuntes','Evaluador: Ecuaciones + Sistemas de ecuaciones']),  // Vie 12
+    R('Repaso semana 2 (mixto)','45 min',['Línea de tiempo: mercantilismo → fisiócratas','Cuadro comparativo sistemas económicos','Evaluador: Oferta y demanda']),  // Sáb 13
+    // Semana 3 (Jun 15–20)
+    T('cal',4),  // Lun 15 Geometría analítica
+    T('his',2),  // Mar 16 Revolución Industrial
+    T('cal',5),  // Mié 17 Funciones
+    T('eco',3),  // Jue 18 Elasticidad
+    T('his',3),  // Vie 19 Pensamiento clásico
+    R('Repaso · Cálculo (geometría y funciones)','45 min',['4 ejercicios de pendiente y distancia','Graficar 3 funciones de memoria','Evaluador: Geometría analítica + Funciones']),  // Sáb 20
+    // Semana 4 (Jun 22–27)
+    T('cal',6),  // Lun 22 Exponentes, radicales y logaritmos
+    T('eco',4),  // Mar 23 Consumidor y empresa
+    T('his',4),  // Mié 24 Siglo XX económico
+    T('cal',7),  // Jue 25 Trigonometría
+    T('eco',5),  // Vie 26 Estructuras de mercado
+    R('Repaso · Cálculo (exp, logs y trig)','45 min',['6 ejercicios de potencias y logaritmos','Memorizar ángulos notables 30°, 45°, 60°','Evaluador: Exponentes + Trigonometría']),  // Sáb 27
+    // Semana 5 (Jun 29 – Jul 4)
+    T('cal',8),  // Lun 29 Límites y continuidad
+    T('eco',6),  // Mar 30 Mercados financieros y dinero
+    T('his',5),  // Mié Jul 1 Globalización
+    T('cal',9),  // Jue 2 La derivada: concepto
+    T('his',6),  // Vie 3 Crisis 2008 y post-pandemia
+    R('Repaso semana 5 (mixto)','60 min',['5 límites de práctica','Repasar concepto de derivada','Evaluador: Límites + La derivada']),  // Sáb 4
+    // Semana 6 (Jul 6–11)
+    T('cal',10), // Lun 6 Reglas de derivación
+    T('eco',7),  // Mar 7 Macroeconomía básica
+    T('his',7),  // Mié 8 Historia Colombia/LatAm
+    T('cal',11), // Jue 9 Aplicaciones de la derivada
+    R('Repaso · Cálculo integrador','60 min',['12 derivadas con todas las reglas','Volver a temas con más errores','Evaluador: Reglas de derivación + Aplicaciones']),  // Vie 10
+    R('Repaso · Economía e Historia completo','45 min',['Repasar micro, macro y mercados financieros','Cuadro resumen historia económica','Evaluador: Macroeconomía + Historia Colombia']),  // Sáb 11
+    // Semana 7 (Jul 13–18)
+    R('Repaso general · Cálculo I','75 min',['Prueba cronometrada 60 min con todos los temas','Revisar errores con calma','Repetir evaluador en temas bajo 80%']),  // Lun 13
+    R('Repaso general · Economía','60 min',['Prueba de todos los temas de economía','Revisar conceptos fallidos','Evaluador completo de economía']),  // Mar 14
+    R('Repaso general · Historia Económica','60 min',['Línea de tiempo completa desde mercantilismo hasta hoy','Cuadro de autores y teorías','Evaluador completo de historia']),  // Mié 15
+    R('Simulacro integrador','75 min',['20 preguntas mezclando cálculo, economía e historia','Registrar errores por materia','Plan de ataque para los últimos días']),  // Jue 16
+    R('Repaso final · Dudas y puntos débiles','45 min',['Repasar solo los temas con más errores','Organizar apuntes y fórmulas','Revisar evaluador una última vez']),  // Vie 17
+    R('Preparación final 🎉','30 min',['Repasar solo lo más flojo','Organizar materiales','¡Lista para el 21 de julio! 🪻']),  // Sáb 18
+  ];
+
+  let tid=100;
+  schedule.forEach((item,idx)=>{
+    const date=dates[idx];if(!date)return;
+    if(item.t==='topic'){
+      const subj=byKey[item.k];
+      const def=SUBJECTS_DEF[item.k].topics[item.i];
+      def.tasks.forEach(task=>db.tasks.push({id:tid++,subjId:subj.id,subjKey:item.k,text:task.t,type:task.type,date,done:false,topicIdx:item.i,time:def.time,session:def.name}));
+    } else {
+      item.tasks.forEach(tx=>db.tasks.push({id:tid++,subjId:0,subjKey:'rev',text:tx,type:'repaso',date,done:false,topicIdx:null,time:item.time,session:item.title}));
+    }
   });
 }
 
 function seed(){
-  db={subjects:[],tasks:[],scores:{},unlocked:[]};
-  let sid=1;const byKey={};
-  for(const[key,c]of Object.entries(SUBJECTS_DEF)){const subj={id:sid++,key,name:c.name,color:c.color,emoji:c.emoji,badge:c.badge,goal:c.goal,topics:c.topics.map(t=>t.name),times:c.topics.map(t=>t.time)};db.subjects.push(subj);byKey[key]=subj;}
-  // Días de estudio: lunes a sábado, del 1 de junio al 18 de julio 2026 (domingos libres)
-  const dates=[];
-  for(let d=new Date(2026,5,1);d<=new Date(2026,6,18);d.setDate(d.getDate()+1)){if(d.getDay()!==0)dates.push(d.toISOString().slice(0,10));}
-  const T=(k,i)=>({t:'topic',k,i});
-  const R=(title,time,tasks)=>({t:'rev',title,time,tasks});
-  // Cálculo aparece casi el doble. 42 días: 27 de tema + 15 de repaso/simulacro
-  const schedule=[
-    // Semana 1
-    T('cal',0),T('eco',0),T('cal',1),T('red',0),
-    R('Repaso · Cálculo (factorización y fracciones)','45 min',['Rehacer 8 ejercicios de factorización sin apuntes','Cazar errores de signo (usa paréntesis)','5 fracciones algebraicas mezcladas','Evaluador: Factorización + Fracciones algebraicas']),
-    R('Repaso semana 1 (mixto)','45 min',['Resumir qué estudia la economía','Repasar idea principal y párrafo','Evaluador: Introducción a la economía']),
-    // Semana 2
-    T('cal',2),T('his',0),T('cal',3),T('eco',1),
-    R('Repaso · Cálculo (ecuaciones y funciones)','45 min',['6 ecuaciones e inecuaciones','Graficar 3 funciones de memoria','Evaluador: Ecuaciones + Funciones']),
-    R('Repaso semana 2 (mixto)','45 min',['Línea de tiempo del mercantilismo','Repasar oferta y demanda','Evaluador: Oferta y demanda']),
-    // Semana 3
-    T('cal',4),T('red',1),T('cal',5),T('eco',2),T('his',1),
-    R('Repaso · Cálculo (exponentes, logs y trig)','45 min',['6 ejercicios de potencias y logaritmos','Memorizar ángulos notables','Evaluador: Exponentes y logaritmos + Trigonometría']),
-    // Semana 4
-    T('cal',6),T('eco',3),T('his',2),T('cal',7),T('red',2),
-    R('Repaso · Cálculo (límites y derivada)','45 min',['5 límites de práctica','Repasar definición de derivada','Evaluador: Límites + La derivada']),
-    // Semana 5
-    T('cal',8),T('eco',4),T('his',3),T('cal',9),T('red',3),
-    R('Repaso semana 5 (mixto)','60 min',['12 derivadas con todas las reglas','Repasar estructuras de mercado','Evaluador: Reglas de derivación']),
-    // Semana 6
-    T('eco',5),T('his',4),
-    R('Repaso · Cálculo integrador','60 min',['10 ejercicios mezclando todo el cálculo','Volver a los temas con más errores','Evaluador: Aplicaciones de la derivada']),
-    R('Repaso · Economía completo','45 min',['Repasar micro y macro','Resumen de una página','Evaluador de los temas de economía']),
-    R('Repaso · Historia económica','45 min',['Cuadro de autores clásicos','Repasar siglo XX y crisis del 29','Evaluador: Pensamiento clásico + Siglo XX']),
-    R('Repaso · Redacción','45 min',['Repasar falacias y argumentación','Escribir un párrafo argumentativo','Evaluador: Pensamiento crítico']),
-    // Semana 7 (hasta el 18 de julio)
-    T('his',5),
-    R('Repaso general mixto','60 min',['10 ejercicios de cálculo variados','15 preguntas de economía e historia','Lista final de dudas']),
-    R('Simulacro de Cálculo I','75 min',['Prueba cronometrada con todos los temas','Revisar errores con calma','Repetir en el Evaluador lo que esté bajo 80%']),
-    R('Simulacro de Economía e Historia','60 min',['Prueba cronometrada de ambas','Revisar conceptos fallidos','Repetir tests bajo 80%']),
-    R('Repaso final · Redacción y dudas','45 min',['Escribir un ensayo corto de práctica','Revisar citación básica APA','Cerrar dudas pendientes']),
-    R('Preparación final 🎉','30 min',['Repasar solo lo más flojo','Organizar apuntes y materiales','¡Lista para el 21 de julio!'])
-  ];
-  let tid=100;
-  schedule.forEach((item,idx)=>{
-    const date=dates[idx];if(!date)return;
-    if(item.t==='topic'){const subj=byKey[item.k];const def=SUBJECTS_DEF[item.k].topics[item.i];def.tasks.forEach(task=>db.tasks.push({id:tid++,subjId:subj.id,subjKey:item.k,text:task.t,type:task.type,date,done:false,topicIdx:item.i,time:def.time,session:def.name}));}
-    else{item.tasks.forEach(tx=>db.tasks.push({id:tid++,subjId:0,subjKey:'rev',text:tx,type:'repaso',date,done:false,topicIdx:null,time:item.time,session:item.title}));}
-  });
+  db={subjects:[],tasks:[],scores:{},unlocked:[],planVersion:PLAN_VERSION};
+  seedInternal();
   saveDB();renderAll();
 }
 
 function renderAll(){setDateLabel();renderTasks();renderSubjects();renderCalendar();renderProgress();renderAchievements();renderEvaluador();updateStreak();}
+
 function setDateLabel(){
   document.getElementById('date-label').textContent=new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});
   const start=new Date(2026,6,21);const now=new Date();const days=Math.ceil((start-now)/(1000*60*60*24));
@@ -455,7 +480,19 @@ function setDateLabel(){
 function updateStreak(){const s=getStreak(db);document.getElementById('streak-text').textContent=s>0?`${s} día${s>1?'s':''} de racha`:'Empieza tu racha hoy';}
 function today(){return new Date().toISOString().slice(0,10);}
 
-function showTab(t){currentTab=t;document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelector(`.nav-btn[onclick="showTab('${t}')"]`).classList.add('active');document.getElementById('tab-'+t).classList.add('active');document.getElementById('fab').style.display=(t==='hoy'||t==='materias')?'flex':'none';if(t==='logros'){renderProgress();renderAchievements();}if(t==='calendario'){renderCalendar();renderCheckpoints();}if(t==='hoy')renderTasks();if(t==='evaluador'){quiz=null;renderEvaluador();}window.scrollTo({top:0,behavior:'smooth'});}
+function showTab(t){
+  currentTab=t;
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelector(`.nav-btn[onclick="showTab('${t}')"]`).classList.add('active');
+  document.getElementById('tab-'+t).classList.add('active');
+  document.getElementById('fab').style.display=(t==='hoy'||t==='materias')?'flex':'none';
+  if(t==='logros'){renderProgress();renderAchievements();}
+  if(t==='calendario'){renderCalendar();renderCheckpoints();}
+  if(t==='hoy')renderTasks();
+  if(t==='evaluador'){quiz=null;renderEvaluador();}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 function handleFab(){if(currentTab!=='materias')openAddTask();}
 function sessionInfo(t){const s=db.subjects.find(x=>x.id===t.subjId);return{name:t.session||(s?s.name:'Repaso'),emoji:s?s.emoji:'🔁',time:t.time||''};}
 
@@ -474,31 +511,223 @@ function renderTasks(){
   document.getElementById('tasks-upcoming').innerHTML=up||'<div class="empty"><div class="empty-emoji">🔮</div>Todo al día</div>';
   renderAlerts();
 }
-function taskHTML(t,overdue=false){const inf=sessionInfo(t);const d=new Date(t.date+'T12:00:00');const label=d.toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short'});const ti={lectura:'📖',ejercicios:'✏️',repaso:'🔁'}[t.type]||'';const cls=['cal','eco','his','red'].includes(t.subjKey)?t.subjKey:'rev';return `<div class="task-item"><input class="task-check" type="checkbox" ${t.done?'checked':''} onchange="toggleTask(${t.id},this.checked)"><div style="flex:1;min-width:0"><div class="task-text ${t.done?'done':''}">${ti} ${t.text}</div><div class="task-meta"><span class="tag tag-${cls}">${inf.emoji} ${inf.name}</span><span style="color:${overdue?'var(--berry)':'var(--text-s)'};font-weight:600">${label}</span></div></div></div>`;}
-function toggleTask(id,val){const t=db.tasks.find(t=>t.id===id);if(!t)return;t.done=val;if(val){t.completedDate=today();showToast('🌱 ¡Tarea completada!');}else delete t.completedDate;saveDB();checkAchievements();renderTasks();renderSubjects();renderCalendar();updateStreak();}
-function renderAlerts(){const todayStr=today();const tm=new Date();tm.setDate(tm.getDate()+1);const tStr=tm.toISOString().slice(0,10);const overdue=db.tasks.filter(t=>!t.done&&t.date<todayStr);const soon=db.tasks.filter(t=>!t.done&&t.date===tStr);let h='';if(overdue.length)h+=`<div class="alert alert-warn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span><strong>${overdue.length}</strong> tarea${overdue.length>1?'s':''} atrasada${overdue.length>1?'s':''}</span></div>`;if(soon.length)h+=`<div class="alert alert-warn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span><strong>${soon.length}</strong> para mañana</span></div>`;document.getElementById('alerts-box').innerHTML=h;}
 
-function renderSubjects(){document.getElementById('subjects-list').innerHTML=db.subjects.map(s=>{const ts=db.tasks.filter(t=>t.subjId===s.id);const d=ts.filter(t=>t.done).length;const pct=ts.length?Math.round(d/ts.length*100):0;const hex=COLORHEX[s.color];return `<div class="subj-card" style="--clr:${hex}" onclick="openDetail(${s.id})"><div class="subj-header"><span class="subj-emoji">${s.emoji}</span><div style="flex:1;min-width:0"><div class="subj-name">${s.name}<span class="subj-badge" style="background:${hex}22;color:${hex}">${s.badge}</span></div><div class="subj-goal">${s.goal}</div></div></div><div class="progress-wrap"><div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${hex}"></div></div><div class="progress-label"><span>${d}/${ts.length} tareas</span><span>${pct}%</span></div></div></div>`;}).join('');}
-function openDetail(id){currentDetailId=id;const s=db.subjects.find(s=>s.id===id);if(!s)return;const hex=COLORHEX[s.color];document.getElementById('detail-title').textContent=`${s.emoji} ${s.name}`;document.getElementById('detail-goal').textContent=s.goal;document.getElementById('detail-checkpoints').innerHTML=s.topics.map((tn,i)=>{const ts=db.tasks.filter(t=>t.subjId===id&&t.topicIdx===i);const done=ts.filter(t=>t.done).length;const allDone=ts.length>0&&done===ts.length;const inProg=done>0&&!allDone;return `<div class="checkpoint ${allDone?'done':''} ${inProg?'current':''}"><div class="cp-circle">${allDone?'✓':i+1}</div><div class="cp-content"><div class="cp-name">${tn}</div><div class="cp-stats">${done}/${ts.length} tareas ${allDone?'✨':''}</div></div></div>`;}).join('');document.getElementById('detail-topics').innerHTML=s.topics.map((tn,i)=>{const ts=db.tasks.filter(t=>t.subjId===id&&t.topicIdx===i);const done=ts.filter(t=>t.done).length;const pct=ts.length?Math.round(done/ts.length*100):0;return `<div class="topic-block"><div class="topic-title"><span>${tn}</span><span style="color:var(--text-s);font-size:11px">${done}/${ts.length}</span></div><div class="topic-time">⏱ Tiempo recomendado: ${s.times[i]||'—'}</div><div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${hex}"></div></div><div style="margin-top:8px">${ts.map(t=>`<div class="sub-item"><span style="font-size:11px;margin-top:1px">${t.done?'✅':'⚪'}</span><span style="${t.done?'text-decoration:line-through;color:var(--text-s)':''}">${t.text}</span></div>`).join('')}</div></div>`;}).join('');openModal('modal-detail');}
-function openAddTask(){document.getElementById('nt-subj').innerHTML=db.subjects.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');document.getElementById('nt-date').value=today();document.getElementById('nt-desc').value='';openModal('modal-task');}
-function saveManualTask(){const desc=document.getElementById('nt-desc').value.trim();const sid=parseInt(document.getElementById('nt-subj').value);const date=document.getElementById('nt-date').value;if(!desc||!date)return;const s=db.subjects.find(s=>s.id===sid);db.tasks.push({id:Date.now(),subjId:sid,subjKey:s.key,text:desc,type:'ejercicios',date,done:false,topicIdx:0,time:'',session:s.name});saveDB();closeModal('modal-task');renderTasks();renderCalendar();}
+function taskHTML(t,overdue=false){
+  const inf=sessionInfo(t);
+  const d=new Date(t.date+'T12:00:00');
+  const label=d.toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short'});
+  const ti={lectura:'📖',ejercicios:'✏️',repaso:'🔁'}[t.type]||'';
+  const cls=['cal','eco','his'].includes(t.subjKey)?t.subjKey:'rev';
+  return `<div class="task-item"><input class="task-check" type="checkbox" ${t.done?'checked':''} onchange="toggleTask(${t.id},this.checked)"><div style="flex:1;min-width:0"><div class="task-text ${t.done?'done':''}">${ti} ${t.text}</div><div class="task-meta"><span class="tag tag-${cls}">${inf.emoji} ${inf.name}</span><span style="color:${overdue?'var(--berry)':'var(--text-s)'};font-weight:600">${label}</span></div></div></div>`;
+}
+
+function toggleTask(id,val){
+  const t=db.tasks.find(t=>t.id===id);if(!t)return;
+  t.done=val;
+  if(val){t.completedDate=today();showToast('🌱 ¡Tarea completada!');}else delete t.completedDate;
+  saveDB();checkAchievements();renderTasks();renderSubjects();renderCalendar();updateStreak();
+}
+
+function renderAlerts(){
+  const todayStr=today();
+  const tm=new Date();tm.setDate(tm.getDate()+1);const tStr=tm.toISOString().slice(0,10);
+  const overdue=db.tasks.filter(t=>!t.done&&t.date<todayStr);
+  const soon=db.tasks.filter(t=>!t.done&&t.date===tStr);
+  let h='';
+  if(overdue.length)h+=`<div class="alert alert-warn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span><strong>${overdue.length}</strong> tarea${overdue.length>1?'s':''} atrasada${overdue.length>1?'s':''}</span></div>`;
+  if(soon.length)h+=`<div class="alert alert-warn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span><strong>${soon.length}</strong> para mañana</span></div>`;
+  document.getElementById('alerts-box').innerHTML=h;
+}
+
+function renderSubjects(){
+  document.getElementById('subjects-list').innerHTML=db.subjects.map(s=>{
+    const ts=db.tasks.filter(t=>t.subjId===s.id);
+    const d=ts.filter(t=>t.done).length;
+    const pct=ts.length?Math.round(d/ts.length*100):0;
+    const hex=COLORHEX[s.color];
+    return `<div class="subj-card" style="--clr:${hex}" onclick="openDetail(${s.id})"><div class="subj-header"><span class="subj-emoji">${s.emoji}</span><div style="flex:1;min-width:0"><div class="subj-name">${s.name}<span class="subj-badge" style="background:${hex}22;color:${hex}">${s.badge}</span></div><div class="subj-goal">${s.goal}</div></div></div><div class="progress-wrap"><div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${hex}"></div></div><div class="progress-label"><span>${d}/${ts.length} tareas</span><span>${pct}%</span></div></div></div>`;
+  }).join('');
+}
+
+function openDetail(id){
+  currentDetailId=id;
+  const s=db.subjects.find(s=>s.id===id);if(!s)return;
+  const hex=COLORHEX[s.color];
+  document.getElementById('detail-title').textContent=`${s.emoji} ${s.name}`;
+  document.getElementById('detail-goal').textContent=s.goal;
+  document.getElementById('detail-checkpoints').innerHTML=s.topics.map((tn,i)=>{
+    const ts=db.tasks.filter(t=>t.subjId===id&&t.topicIdx===i);
+    const done=ts.filter(t=>t.done).length;
+    const allDone=ts.length>0&&done===ts.length;
+    const inProg=done>0&&!allDone;
+    return `<div class="checkpoint ${allDone?'done':''} ${inProg?'current':''}"><div class="cp-circle">${allDone?'✓':i+1}</div><div class="cp-content"><div class="cp-name">${tn}</div><div class="cp-stats">${done}/${ts.length} tareas ${allDone?'✨':''}</div></div></div>`;
+  }).join('');
+  document.getElementById('detail-topics').innerHTML=s.topics.map((tn,i)=>{
+    const ts=db.tasks.filter(t=>t.subjId===id&&t.topicIdx===i);
+    const done=ts.filter(t=>t.done).length;
+    const pct=ts.length?Math.round(done/ts.length*100):0;
+    return `<div class="topic-block"><div class="topic-title"><span>${tn}</span><span style="color:var(--text-s);font-size:11px">${done}/${ts.length}</span></div><div class="topic-time">⏱ Tiempo recomendado: ${s.times[i]||'—'}</div><div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${hex}"></div></div><div style="margin-top:8px">${ts.map(t=>`<div class="sub-item"><span style="font-size:11px;margin-top:1px">${t.done?'✅':'⚪'}</span><span style="${t.done?'text-decoration:line-through;color:var(--text-s)':''}">${t.text}</span></div>`).join('')}</div></div>`;
+  }).join('');
+  openModal('modal-detail');
+}
+
+function openAddTask(){
+  document.getElementById('nt-subj').innerHTML=db.subjects.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  document.getElementById('nt-date').value=today();
+  document.getElementById('nt-desc').value='';
+  openModal('modal-task');
+}
+
+function saveManualTask(){
+  const desc=document.getElementById('nt-desc').value.trim();
+  const sid=parseInt(document.getElementById('nt-subj').value);
+  const date=document.getElementById('nt-date').value;
+  if(!desc||!date)return;
+  const s=db.subjects.find(s=>s.id===sid);
+  db.tasks.push({id:Date.now(),subjId:sid,subjKey:s.key,text:desc,type:'ejercicios',date,done:false,topicIdx:0,time:'',session:s.name});
+  saveDB();closeModal('modal-task');renderTasks();renderCalendar();
+}
 
 function changeMonth(d){if(d===0)calDate=new Date();else calDate=new Date(calDate.getFullYear(),calDate.getMonth()+d,1);renderCalendar();}
-function renderCalendar(){const year=calDate.getFullYear(),month=calDate.getMonth();document.getElementById('cal-month-label').textContent=calDate.toLocaleDateString('es-CO',{month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase());const startDow=(new Date(year,month,1).getDay()+6)%7;const dim=new Date(year,month+1,0).getDate();const todayStr=today();let html=['L','M','M','J','V','S','D'].map(d=>`<div class="cal-day-name">${d}</div>`).join('');const prev=new Date(year,month,0).getDate();for(let i=startDow-1;i>=0;i--)html+=`<div class="cal-day other">${prev-i}</div>`;for(let day=1;day<=dim;day++){const dateObj=new Date(year,month,day);const isSunday=dateObj.getDay()===0;const dStr=`${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;const tasks=db.tasks.filter(t=>t.date===dStr);const done=tasks.filter(t=>t.done).length;const overdue=tasks.length>0&&dStr<todayStr&&done<tasks.length;const allDone=tasks.length>0&&done===tasks.length;let cls='cal-day';if(dStr===todayStr)cls+=' today';else if(isSunday&&!tasks.length)cls+=' sunday';else if(overdue)cls+=' overdue';else if(allDone)cls+=' all-done';else if(tasks.length)cls+=' has-tasks';if(dStr===selectedCalDate)cls+=' selected';const subj=[...new Set(tasks.map(t=>t.subjKey))];const dots=subj.map(k=>`<span class="cal-dot" style="background:${COLORHEX[k]||'#B07AC9'}"></span>`).join('');html+=`<div class="${cls}" onclick="selectCalDay('${dStr}')"><span>${day}</span>${dots?`<div class="cal-dots">${dots}</div>`:''}</div>`;}document.getElementById('cal-grid').innerHTML=html;renderDayDetail();}
-function selectCalDay(d){selectedCalDate=selectedCalDate===d?null:d;renderCalendar();}
-function renderDayDetail(){const c=document.getElementById('day-detail-wrap');if(!selectedCalDate){c.innerHTML='';return;}const tasks=db.tasks.filter(t=>t.date===selectedCalDate);const lbl=new Date(selectedCalDate+'T12:00:00').toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});let head='';if(tasks.length){const inf=sessionInfo(tasks[0]);head=`<div style="font-size:12px;color:var(--text-m);margin-bottom:8px;font-weight:600">${inf.emoji} ${inf.name}${inf.time?` · ⏱ ${inf.time}`:''}</div>`;}c.innerHTML=`<div class="day-detail"><div class="day-detail-title">📌 ${lbl}</div>${head}${tasks.length?tasks.map(t=>{const inf=sessionInfo(t);const ti={lectura:'📖',ejercicios:'✏️',repaso:'🔁'}[t.type]||'';const cls=['cal','eco','his','red'].includes(t.subjKey)?t.subjKey:'rev';return `<div class="task-item" style="padding:8px 0"><input class="task-check" type="checkbox" ${t.done?'checked':''} onchange="toggleTask(${t.id},this.checked)"><div style="flex:1;min-width:0"><div class="task-text ${t.done?'done':''}">${ti} ${t.text}</div><span class="tag tag-${cls}" style="margin-top:4px;display:inline-block">${inf.name}</span></div></div>`;}).join(''):'<p style="font-size:12.5px;color:var(--text-s)">Día de descanso 🌿</p>'}</div>`;}
-function renderCheckpoints(){document.getElementById('checkpoints-list').innerHTML=db.subjects.map(s=>{const hex=COLORHEX[s.color];let cur=-1;for(let i=0;i<s.topics.length;i++){const ts=db.tasks.filter(t=>t.subjId===s.id&&t.topicIdx===i);if(ts.length&&!ts.every(t=>t.done)){cur=i;break;}}if(cur===-1)return `<div class="subj-card" style="--clr:${hex}"><div class="subj-header"><span class="subj-emoji">${s.emoji}</span><div style="flex:1"><div style="font-size:11px;font-weight:700;color:${hex};text-transform:uppercase">${s.name}</div><div class="subj-name" style="font-size:13.5px;margin-top:3px">🎉 ¡Materia completa!</div></div></div></div>`;const ts=db.tasks.filter(t=>t.subjId===s.id&&t.topicIdx===cur);const done=ts.filter(t=>t.done).length;const pct=Math.round(done/ts.length*100);return `<div class="subj-card" style="--clr:${hex}" onclick="openDetail(${s.id})"><div class="subj-header"><span class="subj-emoji">${s.emoji}</span><div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:700;color:${hex};text-transform:uppercase">${s.name}</div><div class="subj-name" style="font-size:13.5px;margin-top:3px;line-height:1.3">Paso ${cur+1}: ${s.topics[cur]}</div><div class="subj-goal">⏱ ${s.times[cur]} · ${done}/${ts.length} · ${pct}%</div></div></div><div class="progress-wrap"><div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${hex}"></div></div></div></div>`;}).join('');}
 
-function renderEvaluador(){const el=document.getElementById('evaluador-body');if(quiz){renderQuiz();return;}const areas=['cal','eco','his','red'];const allKeys=[];areas.forEach(a=>QUIZZES[a].forEach((_,i)=>allKeys.push(a+'-'+i)));const doneCount=allKeys.filter(k=>db.scores[k]).length;const vals=Object.values(db.scores);const avg=vals.length?Math.round(vals.reduce((a,s)=>a+s.pct,0)/vals.length):null;el.innerHTML=`<div class="stats-row"><div class="stat-card" style="--accent:var(--purple)"><div class="stat-num" style="color:var(--purple)">${doneCount}/${allKeys.length}</div><div class="stat-lbl">evaluados</div></div><div class="stat-card" style="--accent:var(--mauve)"><div class="stat-num" style="color:var(--mauve)">${avg!==null?avg+'%':'—'}</div><div class="stat-lbl">promedio</div></div><div class="stat-card" style="--accent:var(--berry)"><div class="stat-num" style="color:var(--berry);font-size:15px;padding:4px 0">${avg===null?'—':avg>=80?'Avanzado':avg>=60?'Medio':'Básico'}</div><div class="stat-lbl">nivel</div></div></div>${areas.map(area=>{const s=db.subjects.find(x=>x.key===area);const hex=COLORHEX[area];return `<p class="section-title"><span>${s.emoji}</span>${s.name}</p><div class="card">${QUIZZES[area].map((qz,i)=>{const key=area+'-'+i;const sc=db.scores[key];return `<div class="task-item"><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600">${qz.topic}</div>${sc?`<div class="progress-track" style="margin-top:6px"><div class="progress-fill" style="width:${sc.pct}%;background:${hex}"></div></div><div style="font-size:11px;color:var(--text-s);margin-top:4px">${sc.correct}/${sc.total} · ${sc.pct}%</div>`:`<div style="font-size:11px;color:var(--text-s);margin-top:2px">Sin evaluar</div>`}</div><button class="btn btn-sm ${sc?'':'btn-primary'}" onclick="startQuiz('${area}',${i})">${sc?'Repetir':'Evaluar'}</button></div>`;}).join('')}</div>`;}).join('')}`;}
+function renderCalendar(){
+  const year=calDate.getFullYear(),month=calDate.getMonth();
+  document.getElementById('cal-month-label').textContent=calDate.toLocaleDateString('es-CO',{month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase());
+  const startDow=(new Date(year,month,1).getDay()+6)%7;
+  const dim=new Date(year,month+1,0).getDate();
+  const todayStr=today();
+  let html=['L','M','M','J','V','S','D'].map(d=>`<div class="cal-day-name">${d}</div>`).join('');
+  const prev=new Date(year,month,0).getDate();
+  for(let i=startDow-1;i>=0;i--)html+=`<div class="cal-day other">${prev-i}</div>`;
+  for(let day=1;day<=dim;day++){
+    const dateObj=new Date(year,month,day);
+    const isSunday=dateObj.getDay()===0;
+    const dStr=`${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const tasks=db.tasks.filter(t=>t.date===dStr);
+    const done=tasks.filter(t=>t.done).length;
+    const overdue=tasks.length>0&&dStr<todayStr&&done<tasks.length;
+    const allDone=tasks.length>0&&done===tasks.length;
+    let cls='cal-day';
+    if(dStr===todayStr)cls+=' today';
+    else if(isSunday&&!tasks.length)cls+=' sunday';
+    else if(overdue)cls+=' overdue';
+    else if(allDone)cls+=' all-done';
+    else if(tasks.length)cls+=' has-tasks';
+    if(dStr===selectedCalDate)cls+=' selected';
+    const subj=[...new Set(tasks.map(t=>t.subjKey))];
+    const dots=subj.map(k=>`<span class="cal-dot" style="background:${COLORHEX[k]||'#B07AC9'}"></span>`).join('');
+    html+=`<div class="${cls}" onclick="selectCalDay('${dStr}')"><span>${day}</span>${dots?`<div class="cal-dots">${dots}</div>`:''}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+  renderDayDetail();
+}
+
+function selectCalDay(d){selectedCalDate=selectedCalDate===d?null:d;renderCalendar();}
+
+function renderDayDetail(){
+  const c=document.getElementById('day-detail-wrap');
+  if(!selectedCalDate){c.innerHTML='';return;}
+  const tasks=db.tasks.filter(t=>t.date===selectedCalDate);
+  const lbl=new Date(selectedCalDate+'T12:00:00').toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});
+  let head='';
+  if(tasks.length){const inf=sessionInfo(tasks[0]);head=`<div style="font-size:12px;color:var(--text-m);margin-bottom:8px;font-weight:600">${inf.emoji} ${inf.name}${inf.time?` · ⏱ ${inf.time}`:''}</div>`;}
+  c.innerHTML=`<div class="day-detail"><div class="day-detail-title">📌 ${lbl}</div>${head}${tasks.length?tasks.map(t=>{
+    const inf=sessionInfo(t);
+    const ti={lectura:'📖',ejercicios:'✏️',repaso:'🔁'}[t.type]||'';
+    const cls=['cal','eco','his'].includes(t.subjKey)?t.subjKey:'rev';
+    return `<div class="task-item" style="padding:8px 0"><input class="task-check" type="checkbox" ${t.done?'checked':''} onchange="toggleTask(${t.id},this.checked)"><div style="flex:1;min-width:0"><div class="task-text ${t.done?'done':''}">${ti} ${t.text}</div><span class="tag tag-${cls}" style="margin-top:4px;display:inline-block">${inf.name}</span></div></div>`;
+  }).join(''):'<p style="font-size:12.5px;color:var(--text-s)">Día de descanso 🌿</p>'}</div>`;
+}
+
+function renderCheckpoints(){
+  document.getElementById('checkpoints-list').innerHTML=db.subjects.map(s=>{
+    const hex=COLORHEX[s.color];
+    let cur=-1;
+    for(let i=0;i<s.topics.length;i++){const ts=db.tasks.filter(t=>t.subjId===s.id&&t.topicIdx===i);if(ts.length&&!ts.every(t=>t.done)){cur=i;break;}}
+    if(cur===-1)return `<div class="subj-card" style="--clr:${hex}"><div class="subj-header"><span class="subj-emoji">${s.emoji}</span><div style="flex:1"><div style="font-size:11px;font-weight:700;color:${hex};text-transform:uppercase">${s.name}</div><div class="subj-name" style="font-size:13.5px;margin-top:3px">🎉 ¡Materia completa!</div></div></div></div>`;
+    const ts=db.tasks.filter(t=>t.subjId===s.id&&t.topicIdx===cur);
+    const done=ts.filter(t=>t.done).length;
+    const pct=Math.round(done/ts.length*100);
+    return `<div class="subj-card" style="--clr:${hex}" onclick="openDetail(${s.id})"><div class="subj-header"><span class="subj-emoji">${s.emoji}</span><div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:700;color:${hex};text-transform:uppercase">${s.name}</div><div class="subj-name" style="font-size:13.5px;margin-top:3px;line-height:1.3">Paso ${cur+1}: ${s.topics[cur]}</div><div class="subj-goal">⏱ ${s.times[cur]} · ${done}/${ts.length} · ${pct}%</div></div></div><div class="progress-wrap"><div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${hex}"></div></div></div></div>`;
+  }).join('');
+}
+
+function renderEvaluador(){
+  const el=document.getElementById('evaluador-body');
+  if(quiz){renderQuiz();return;}
+  const areas=['cal','eco','his'];
+  const allKeys=[];areas.forEach(a=>QUIZZES[a].forEach((_,i)=>allKeys.push(a+'-'+i)));
+  const doneCount=allKeys.filter(k=>db.scores[k]).length;
+  const vals=Object.values(db.scores);
+  const avg=vals.length?Math.round(vals.reduce((a,s)=>a+s.pct,0)/vals.length):null;
+  el.innerHTML=`<div class="stats-row"><div class="stat-card" style="--accent:var(--purple)"><div class="stat-num" style="color:var(--purple)">${doneCount}/${allKeys.length}</div><div class="stat-lbl">evaluados</div></div><div class="stat-card" style="--accent:var(--mauve)"><div class="stat-num" style="color:var(--mauve)">${avg!==null?avg+'%':'—'}</div><div class="stat-lbl">promedio</div></div><div class="stat-card" style="--accent:var(--berry)"><div class="stat-num" style="color:var(--berry);font-size:15px;padding:4px 0">${avg===null?'—':avg>=80?'Avanzado':avg>=60?'Medio':'Básico'}</div><div class="stat-lbl">nivel</div></div></div>${areas.map(area=>{
+    const s=db.subjects.find(x=>x.key===area);
+    const hex=COLORHEX[area];
+    return `<p class="section-title"><span>${s.emoji}</span>${s.name}</p><div class="card">${QUIZZES[area].map((qz,i)=>{
+      const key=area+'-'+i;const sc=db.scores[key];
+      return `<div class="task-item"><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600">${qz.topic}</div>${sc?`<div class="progress-track" style="margin-top:6px"><div class="progress-fill" style="width:${sc.pct}%;background:${hex}"></div></div><div style="font-size:11px;color:var(--text-s);margin-top:4px">${sc.correct}/${sc.total} · ${sc.pct}%</div>`:`<div style="font-size:11px;color:var(--text-s);margin-top:2px">Sin evaluar</div>`}</div><button class="btn btn-sm ${sc?'':'btn-primary'}" onclick="startQuiz('${area}',${i})">${sc?'Repetir':'Evaluar'}</button></div>`;
+    }).join('')}</div>`;
+  }).join('')}`;
+}
+
 function startQuiz(area,i){quiz={area,i,topic:QUIZZES[area][i].topic,qs:QUIZZES[area][i].qs,idx:0,sel:null,confirmed:false,correct:0};renderQuiz();}
-function renderQuiz(){const el=document.getElementById('evaluador-body');if(quiz.done){const pct=Math.round(quiz.correct/quiz.qs.length*100);const icon=pct>=80?'🏅':pct>=60?'⭐':'🔁';const msg=pct>=80?'¡Excelente dominio!':pct>=60?'Buen avance, sigue practicando.':'Repasa este tema antes de seguir.';const color=pct>=80?'var(--purple)':pct>=60?'var(--mauve)':'var(--berry)';el.innerHTML=`<div class="card"><div class="quiz-result"><div style="font-size:44px;margin-bottom:6px">${icon}</div><div class="quiz-score" style="color:${color}">${pct}%</div><div style="font-size:13px;color:var(--text-s);margin-top:4px">${quiz.correct} de ${quiz.qs.length} correctas</div><div style="font-size:14px;margin-top:8px">${msg}</div></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-block" onclick="startQuiz('${quiz.area}',${quiz.i})">↺ Repetir</button><button class="btn btn-primary btn-block" onclick="quiz=null;renderEvaluador()">Todos los temas</button></div></div>`;return;}const q=quiz.qs[quiz.idx];const pct=Math.round(quiz.idx/quiz.qs.length*100);const hex=COLORHEX[quiz.area];el.innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><button class="btn btn-sm" onclick="quiz=null;renderEvaluador()">← Volver</button><span class="tag tag-${quiz.area}">${quiz.topic}</span><span style="margin-left:auto;font-size:13px;color:var(--text-s)">${quiz.idx+1}/${quiz.qs.length}</span></div><div class="progress-track" style="margin-bottom:14px"><div class="progress-fill" style="width:${pct}%;background:${hex}"></div></div><div class="q-text">${q.q}</div>${q.o.map((opt,i)=>{let cls='opt';if(quiz.confirmed){if(i===q.a)cls+=' correct';else if(i===quiz.sel&&i!==q.a)cls+=' wrong';}else if(quiz.sel===i)cls+=' selected';return `<div class="${cls}" onclick="selOpt(${i})"><div class="opt-letter">${quiz.confirmed&&i===q.a?'✓':String.fromCharCode(65+i)}</div>${opt}</div>`;}).join('')}${quiz.confirmed?`<div class="hint-box">💡 ${q.h}</div>`:''}${!quiz.confirmed?`<button class="btn btn-primary btn-block" onclick="confirmOpt()" ${quiz.sel===null?'disabled':''}>Confirmar</button>`:`<button class="btn btn-primary btn-block" onclick="nextQ()">${quiz.idx+1<quiz.qs.length?'Siguiente →':'Ver resultado →'}</button>`}`;}
+
+function renderQuiz(){
+  const el=document.getElementById('evaluador-body');
+  if(quiz.done){
+    const pct=Math.round(quiz.correct/quiz.qs.length*100);
+    const icon=pct>=80?'🏅':pct>=60?'⭐':'🔁';
+    const msg=pct>=80?'¡Excelente dominio!':pct>=60?'Buen avance, sigue practicando.':'Repasa este tema antes de seguir.';
+    const color=pct>=80?'var(--purple)':pct>=60?'var(--mauve)':'var(--berry)';
+    el.innerHTML=`<div class="card"><div class="quiz-result"><div style="font-size:44px;margin-bottom:6px">${icon}</div><div class="quiz-score" style="color:${color}">${pct}%</div><div style="font-size:13px;color:var(--text-s);margin-top:4px">${quiz.correct} de ${quiz.qs.length} correctas</div><div style="font-size:14px;margin-top:8px">${msg}</div></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-block" onclick="startQuiz('${quiz.area}',${quiz.i})">↺ Repetir</button><button class="btn btn-primary btn-block" onclick="quiz=null;renderEvaluador()">Todos los temas</button></div></div>`;
+    return;
+  }
+  const q=quiz.qs[quiz.idx];
+  const pct=Math.round(quiz.idx/quiz.qs.length*100);
+  const hex=COLORHEX[quiz.area];
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><button class="btn btn-sm" onclick="quiz=null;renderEvaluador()">← Volver</button><span class="tag tag-${quiz.area}">${quiz.topic}</span><span style="margin-left:auto;font-size:13px;color:var(--text-s)">${quiz.idx+1}/${quiz.qs.length}</span></div><div class="progress-track" style="margin-bottom:14px"><div class="progress-fill" style="width:${pct}%;background:${hex}"></div></div><div class="q-text">${q.q}</div>${q.o.map((opt,i)=>{let cls='opt';if(quiz.confirmed){if(i===q.a)cls+=' correct';else if(i===quiz.sel&&i!==q.a)cls+=' wrong';}else if(quiz.sel===i)cls+=' selected';return `<div class="${cls}" onclick="selOpt(${i})"><div class="opt-letter">${quiz.confirmed&&i===q.a?'✓':String.fromCharCode(65+i)}</div>${opt}</div>`;}).join('')}${quiz.confirmed?`<div class="hint-box">💡 ${q.h}</div>`:''}${!quiz.confirmed?`<button class="btn btn-primary btn-block" onclick="confirmOpt()" ${quiz.sel===null?'disabled':''}>Confirmar</button>`:`<button class="btn btn-primary btn-block" onclick="nextQ()">${quiz.idx+1<quiz.qs.length?'Siguiente →':'Ver resultado →'}</button>`}`;
+}
+
 function selOpt(i){if(quiz.confirmed)return;quiz.sel=i;renderQuiz();}
 function confirmOpt(){if(quiz.sel===null)return;quiz.confirmed=true;if(quiz.sel===quiz.qs[quiz.idx].a)quiz.correct++;renderQuiz();}
-function nextQ(){if(quiz.idx+1<quiz.qs.length){quiz.idx++;quiz.sel=null;quiz.confirmed=false;renderQuiz();}else{const pct=Math.round(quiz.correct/quiz.qs.length*100);db.scores[quiz.area+'-'+quiz.i]={correct:quiz.correct,total:quiz.qs.length,pct};saveDB();checkAchievements();quiz.done=true;renderQuiz();showToast(`📝 ${quiz.topic}: ${pct}%`);}}
+function nextQ(){
+  if(quiz.idx+1<quiz.qs.length){quiz.idx++;quiz.sel=null;quiz.confirmed=false;renderQuiz();}
+  else{
+    const pct=Math.round(quiz.correct/quiz.qs.length*100);
+    db.scores[quiz.area+'-'+quiz.i]={correct:quiz.correct,total:quiz.qs.length,pct};
+    saveDB();checkAchievements();quiz.done=true;renderQuiz();
+    showToast(`📝 ${quiz.topic}: ${pct}%`);
+  }
+}
 
-function checkAchievements(){let news=[];ACHIEVEMENTS.forEach(a=>{if(!db.unlocked.includes(a.id)&&a.check(db)){db.unlocked.push(a.id);news.push(a);}});if(news.length){saveDB();news.forEach((a,i)=>setTimeout(()=>showToast(`${a.icon} ¡${a.name} desbloqueada!`),i*1800));}}
-function renderAchievements(){document.getElementById('achievements-grid').innerHTML=ACHIEVEMENTS.map(a=>{const u=db.unlocked.includes(a.id);return `<div class="achievement ${u?'unlocked':'locked'}"><div class="ach-icon">${a.icon}</div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>`;}).join('');}
-function renderProgress(){const total=db.tasks.length,done=db.tasks.filter(t=>t.done).length;const pct=total?Math.round(done/total*100):0;const vals=Object.values(db.scores);const avg=vals.length?Math.round(vals.reduce((a,s)=>a+s.pct,0)/vals.length):0;const streak=getStreak(db);document.getElementById('stats-grid').innerHTML=`<div class="stat-card" style="--accent:var(--purple)"><div class="stat-num" style="color:var(--purple)">${pct}%</div><div class="stat-lbl">avance</div></div><div class="stat-card" style="--accent:var(--mauve)"><div class="stat-num" style="color:var(--mauve)">${avg||'—'}</div><div class="stat-lbl">nota eval</div></div><div class="stat-card" style="--accent:var(--berry)"><div class="stat-num" style="color:var(--berry)">${streak}</div><div class="stat-lbl">🔥 racha</div></div>`;document.getElementById('progress-list').innerHTML=db.subjects.map(s=>{const hex=COLORHEX[s.color];const ts=db.tasks.filter(t=>t.subjId===s.id);const d=ts.filter(t=>t.done).length;const p=ts.length?Math.round(d/ts.length*100):0;return `<div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:8px;align-items:center"><span style="font-weight:600;font-size:13.5px">${s.emoji} ${s.name}</span><span style="font-size:11px;color:var(--text-m);font-weight:600">${d}/${ts.length}</span></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${hex}"></div></div></div>`;}).join('');}
+function checkAchievements(){
+  let news=[];
+  ACHIEVEMENTS.forEach(a=>{if(!db.unlocked.includes(a.id)&&a.check(db)){db.unlocked.push(a.id);news.push(a);}});
+  if(news.length){saveDB();news.forEach((a,i)=>setTimeout(()=>showToast(`${a.icon} ¡${a.name} desbloqueada!`),i*1800));}
+}
+
+function renderAchievements(){
+  document.getElementById('achievements-grid').innerHTML=ACHIEVEMENTS.map(a=>{
+    const u=db.unlocked.includes(a.id);
+    return `<div class="achievement ${u?'unlocked':'locked'}"><div class="ach-icon">${a.icon}</div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>`;
+  }).join('');
+}
+
+function renderProgress(){
+  const total=db.tasks.length,done=db.tasks.filter(t=>t.done).length;
+  const pct=total?Math.round(done/total*100):0;
+  const vals=Object.values(db.scores);
+  const avg=vals.length?Math.round(vals.reduce((a,s)=>a+s.pct,0)/vals.length):0;
+  const streak=getStreak(db);
+  document.getElementById('stats-grid').innerHTML=`<div class="stat-card" style="--accent:var(--purple)"><div class="stat-num" style="color:var(--purple)">${pct}%</div><div class="stat-lbl">avance</div></div><div class="stat-card" style="--accent:var(--mauve)"><div class="stat-num" style="color:var(--mauve)">${avg||'—'}</div><div class="stat-lbl">nota eval</div></div><div class="stat-card" style="--accent:var(--berry)"><div class="stat-num" style="color:var(--berry)">${streak}</div><div class="stat-lbl">🔥 racha</div></div>`;
+  document.getElementById('progress-list').innerHTML=db.subjects.map(s=>{
+    const hex=COLORHEX[s.color];
+    const ts=db.tasks.filter(t=>t.subjId===s.id);
+    const d=ts.filter(t=>t.done).length;
+    const p=ts.length?Math.round(d/ts.length*100):0;
+    return `<div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:8px;align-items:center"><span style="font-weight:600;font-size:13.5px">${s.emoji} ${s.name}</span><span style="font-size:11px;color:var(--text-m);font-weight:600">${d}/${ts.length}</span></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${hex}"></div></div></div>`;
+  }).join('');
+}
 
 function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
 function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
